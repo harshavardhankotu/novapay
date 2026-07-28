@@ -29,29 +29,32 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 border-r border-[#dfe6e9] dark:border-[#2d3436] bg-white dark:bg-[#1a1a2e] h-screen sticky top-0">
-      <div className="p-6 border-b border-[#dfe6e9] dark:border-[#2d3436]">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
+    <aside className="hidden lg:flex flex-col w-64 border-r border-[#e8eaed] dark:border-[#2a2a45] bg-white dark:bg-[#0a0a14] h-screen sticky top-0 shrink-0">
+      <div className="p-5 border-b border-[#e8eaed] dark:border-[#2a2a45]">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-[#5046e5]/20">
             <span className="text-white font-bold text-sm">R</span>
           </div>
-          <span className="font-bold text-lg">Revolut</span>
+          <div>
+            <span className="font-bold text-base">Revolut</span>
+            <span className="block text-[10px] text-[#636e72] font-medium tracking-tight">India</span>
+          </div>
         </Link>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname.startsWith(item.href)
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-[#6c5ce7] text-white shadow-sm"
-                  : "text-[#636e72] hover:bg-[#f8f9fa] dark:hover:bg-[#2d3436] hover:text-[#2d3436] dark:hover:text-white"
+                  ? "bg-[#5046e5] text-white shadow-md shadow-[#5046e5]/20"
+                  : "text-[#636e72] hover:bg-[#f5f6fa] dark:hover:bg-[#1a1a30] hover:text-[#1a1a2e] dark:hover:text-white"
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -61,7 +64,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-[#dfe6e9] dark:border-[#2d3436] space-y-1">
+      <div className="p-3 border-t border-[#e8eaed] dark:border-[#2a2a45] space-y-0.5">
         {bottomItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname.startsWith(item.href)
@@ -70,10 +73,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-[#6c5ce7] text-white shadow-sm"
-                  : "text-[#636e72] hover:bg-[#f8f9fa] dark:hover:bg-[#2d3436] hover:text-[#2d3436] dark:hover:text-white"
+                  ? "bg-[#5046e5] text-white shadow-md shadow-[#5046e5]/20"
+                  : "text-[#636e72] hover:bg-[#f5f6fa] dark:hover:bg-[#1a1a30] hover:text-[#1a1a2e] dark:hover:text-white"
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
