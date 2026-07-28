@@ -1,17 +1,54 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Camera, FileText, Fingerprint, Shield, Check, ChevronRight } from "lucide-react"
+import { Camera, FileText, Shield, Check, ChevronRight, AlertCircle, Loader2 } from "lucide-react"
 
 const steps = [
-  { icon: FileText, title: "Aadhaar Verification", desc: "Link via DigiLocker", status: "done" },
-  { icon: Fingerprint, title: "PAN Verification", desc: "Verify your PAN details", status: "done" },
-  { icon: Camera, title: "Video KYC", desc: "5-min video call with agent", status: "current" },
-  { icon: Shield, title: "Approval", desc: "Account activated instantly", status: "pending" },
+  { icon: FileText, title: "Aadhaar Verification", desc: "Link via DigiLocker", key: "aadhaar" },
+  { icon: FileText, title: "PAN Verification", desc: "Verify your PAN details", key: "pan" },
+  { icon: Camera, title: "Video KYC", desc: "5-min video call with agent", key: "video" },
+  { icon: Shield, title: "Approval", desc: "Account activated instantly", key: "approval" },
 ]
 
 export default function KycPage() {
+  const router = useRouter()
+  const [aadhaar, setAadhaar] = useState("")
+  const [pan, setPan] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [completedSteps, setCompletedSteps] = useState<string[]>([])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    if (!aadhaar && !pan) { setError("Enter at least Aadhaar or PAN"); return }
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/kyc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aadhaar: aadhaar || undefined, pan: pan || undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || "KYC submission failed"); setLoading(false); return }
+      const newSteps = [...completedSteps]
+      if (aadhaar) newSteps.push("aadhaar")
+      if (pan) newSteps.push("pan")
+      setCompletedSteps(newSteps)
+      setLoading(false)
+      if (data.kycLevel === "FULL") {
+        router.push("/dashboard")
+      }
+    } catch {
+      setError("Network error")
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-5 bg-gradient-to-br from-[#f8f9fc] to-white dark:from-[#0a0a14] dark:to-[#15152a]">
       <div className="w-full max-w-md animate-slide-up">
@@ -25,46 +62,57 @@ export default function KycPage() {
 
         <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-6 shadow-sm space-y-5">
           <div className="space-y-3">
-            {steps.map((step, i) => {
+            {steps.map((step) => {
               const Icon = step.icon
-              const statusColors: Record<string, string> = {
-                done: "border-[#00b894] bg-[#00b894]/5",
-                current: "border-[#5046e5] bg-[#5046e5]/5",
-                pending: "border-[#e8eaed] dark:border-[#2a2a45] opacity-50",
-              }
-              const iconColors: Record<string, string> = {
-                done: "bg-[#00b894] text-white",
-                current: "bg-[#5046e5] text-white",
-                pending: "bg-[#f5f6fa] dark:bg-[#1a1a30] text-[#636e72]",
-              }
+              const isDone = completedSteps.includes(step.key)
+              const isCurrent = !isDone && (step.key === "aadhaar" || (step.key === "pan" && completedSteps.includes("aadhaar")))
+              const isLocked = !isDone && !isCurrent
+
               return (
-                <div key={step.title} className={`flex items-center gap-4 p-4 rounded-xl border ${statusColors[step.status]}`}>
-                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${iconColors[step.status]}`}>
-                    {step.status === "done" ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                <div key={step.title} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                  isDone ? "border-[#00b894] bg-[#00b894]/5" :
+                  isCurrent ? "border-[#5046e5] bg-[#5046e5]/5" :
+                  "border-[#e8eaed] dark:border-[#2a2a45] opacity-50"
+                }`}>
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    isDone ? "bg-[#00b894] text-white" :
+                    isCurrent ? "bg-[#5046e5] text-white" :
+                    "bg-[#f5f6fa] dark:bg-[#1a1a30] text-[#636e72]"
+                  }`}>
+                    {isDone ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{step.title}</p>
                     <p className="text-xs text-[#636e72]">{step.desc}</p>
                   </div>
-                  {step.status === "done" && <Badge variant="success" className="text-[10px]">Done</Badge>}
-                  {step.status === "current" && <Button size="sm" variant="primary" className="shrink-0">Start</Button>}
-                  {step.status === "pending" && <ChevronRight className="h-4 w-4 text-[#636e72]" />}
+                  {isDone && <Badge variant="success" className="text-[10px]">Done</Badge>}
+                  {isLocked && <ChevronRight className="h-4 w-4 text-[#636e72]" />}
                 </div>
               )
             })}
           </div>
 
-          <div className="space-y-3 pt-2 border-t border-[#e8eaed] dark:border-[#2a2a45]">
+          <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-[#e8eaed] dark:border-[#2a2a45]">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Aadhaar Number</label>
-              <input className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="XXXX XXXX XXXX" />
+              <input value={aadhaar} onChange={(e) => setAadhaar(e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="XXXX XXXX XXXX" maxLength={14} />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">PAN Number</label>
-              <input className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="ABCDE1234F" />
+              <input value={pan} onChange={(e) => setPan(e.target.value.toUpperCase())} className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="ABCDE1234F" maxLength={10} />
             </div>
-            <Button className="w-full" size="lg">Submit & Continue to Video KYC</Button>
-          </div>
+
+            {error && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#e17055]/5 border border-[#e17055]/20 text-sm text-[#e17055]">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            <Button className="w-full" size="lg" disabled={loading}>
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Submitting...</> : "Submit & Continue"}
+            </Button>
+          </form>
         </div>
       </div>
     </div>
