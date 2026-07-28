@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum KycLevel {
+  UNVERIFIED
+  MINIMAL
+  FULL
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
+enum CardType {
+  VIRTUAL
+  PHYSICAL
+  METAL
+}
+
+enum CardNetwork {
+  VISA
+  MASTERCARD
+  RUPAY
+}
+
+enum CardStatus {
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum BudgetPeriod {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum RewardTier {
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  phone     String    @unique
+  name      String
+  avatar    String?
+  password  String
+  aadhaar   String?   @unique
+  pan       String?   @unique
+  kycLevel  KycLevel  @default(UNVERIFIED)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  accounts Account[]
+  beneficiaries Beneficiary[]
+  budgets      Budget[]
+  familiesParent FamilyParent[] @relation("FamilyParentRelation")
+  familiesChild  FamilyParent[] @relation("FamilyChildRelation")
+  rewards        Reward[]
+  kycDocuments KycDocument[]
+  auditLogs    AuditLog[]
+}
+
+model Account {
+  id            String      @id @default(cuid())
+  userId        String
+  type          AccountType
+  balance       Float       @default(0)
+  currency      String      @default("INR")
+  accountNumber String      @unique
+  ifsc          String
+  upiHandle     String?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user              User       @relation(fields: [userId], references: [id])
+  cards             Card[]
+  transactions      Transaction[]
+  outgoingTransfers Transfer[] @relation("FromAccount")
+  incomingTransfers Transfer[] @relation("ToAccount")
+}
+
+model Card {
+  id              String      @id @default(cuid())
+  accountId       String
+  type            CardType
+  network         CardNetwork
+  lastFour        String
+  expiryMonth     Int
+  expiryYear      Int
+  cvv             String
+  status          CardStatus   @default(ACTIVE)
+  dailyLimit      Float        @default(100000)
+  monthlyLimit    Float        @default(500000)
+  isContactless   Boolean      @default(true)
+  isOnlineEnabled Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model Transaction {
+  id           String            @id @default(cuid())
+  accountId    String
+  type         TransactionType
+  amount       Float
+  currency     String            @default("INR")
+  status       TransactionStatus @default(COMPLETED)
+  category     String
+  description  String
+  reference    String            @unique
+  counterparty String?
+  timestamp    DateTime          @default(now())
+
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model Transfer {
+  id              String        @id @default(cuid())
+  fromAccountId   String
+  toAccountId     String?
+  amount          Float
+  currency        String        @default("INR")
+  type            String        @default("NEFT")
+  status          TransactionStatus @default(PENDING)
+  reference       String        @unique
+  fromDetails     String?
+  toDetails       String?
+  createdAt       DateTime      @default(now())
+
+  fromAccount Account @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount   Account? @relation("ToAccount", fields: [toAccountId], references: [id])
+}
+
+model Beneficiary {
+  id            String  @id @default(cuid())
+  userId        String
+  name          String
+  accountNumber String?
+  ifsc          String?
+  upiId         String?
+  email         String?
+  type          String  @default("BANK")
+  isFavourite   Boolean @default(false)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Budget {
+  id       String       @id @default(cuid())
+  userId   String
+  category String
+  amount   Float
+  spent    Float        @default(0)
+  period   BudgetPeriod @default(MONTHLY)
+  month    String
+  createdAt DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model FamilyParent {
+  id            String   @id @default(cuid())
+  parentId      String
+  childId       String
+  dailyLimit    Float    @default(5000)
+  monthlyLimit  Float    @default(50000)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  parent User @relation("FamilyParentRelation", fields: [parentId], references: [id])
+  child  User @relation("FamilyChildRelation", fields: [childId], references: [id])
+}
+
+model Reward {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  points    Float      @default(0)
+  tier      RewardTier @default(SILVER)
+  cashback  Float      @default(0)
+  joinedAt  DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model KycDocument {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  status     String   @default("PENDING")
+  url        String?
+  verifiedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  ip        String?
+  device    String?
+  details   String?
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
