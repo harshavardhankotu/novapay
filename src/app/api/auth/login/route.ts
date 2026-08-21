@@ -3,6 +3,7 @@ import { signToken, verifyPassword, setTokenCookie } from "@/lib/auth"
 import { generateOtp, normalizeIndianPhone } from "@/lib/validation"
 import { checkRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
+import { audit } from "@/lib/banking"
 
 // In-memory OTP store: ticket -> { userId, code, expiresAt, attempts }
 const otpStore = new Map<string, { userId: string; code: string; expiresAt: number; attempts: number }>()
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Incorrect OTP. ${MAX_ATTEMPTS - record.attempts} attempts left.` }, { status: 400 })
       }
       otpStore.delete(ticket)
+      await audit(user.id, "LOGIN_SUCCESS", `OTP login via ${identifierRaw.includes("@") ? "email" : "SMS"}`)
 
       const token = signToken({ userId: user.id, email: user.email, name: user.name, role: (user as any).role || "USER" })
       const response = NextResponse.json({

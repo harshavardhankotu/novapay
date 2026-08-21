@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError } from "@/lib/banking"
 
 class ApiError extends Error {
   constructor(public status: number, message: string) { super(message) }
@@ -22,18 +23,25 @@ export async function POST(request: Request) {
   if (!payload) return NextResponse.json({ error: "Invalid token" }, { status: 401 })
 
   try {
-    const { fromAccountId, toAccountNumber, amount: rawAmount, note } = await request.json()
-    const amount = toValidAmount(rawAmount)
+    const body = await request.json()
+    const { fromAccountId, toAccountNumber, note } = body
+    const amount = toValidAmount(body.amount)
 
-    if (!fromAccountId) {
-      return NextResponse.json({ error: "Invalid transfer details" }, { status: 400 })
+    // Idempotency: same dedupeKey never moves money twice.
+    if (typeof body.dedupeKey === "string" && body.dedupeKey) {
+      const existing = await prisma.transaction.findUnique({ where: { dedupeKey: body.dedupeKey } })
+      if (existing) {
+        return NextResponse.json({ transfer: existing, reference: existing.reference, duplicate: true })
+      }
     }
 
+    await assertDebitAllowed(payload.userId, fromAccountId, amount)
+
     const reference = `TXN${Date.now()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`
+    // Ledger convention: debits are stored SIGNED negative.
+    const signedAmount = -amount
 
     const transfer = await prisma.$transaction(async (tx) => {
-      // Balance check happens INSIDE the transaction so concurrent
-      // transfers cannot overdraw the account.
       const fromAccount = await tx.account.findFirst({
         where: { id: fromAccountId, userId: payload.userId },
       })
@@ -45,12 +53,28 @@ export async function POST(request: Request) {
         data: { balance: { decrement: amount } },
       })
 
+      let creditedTo: string | null = null
       if (toAccountNumber) {
         const toAccount = await tx.account.findUnique({ where: { accountNumber: toAccountNumber } })
-        if (toAccount) {
+        if (toAccount && toAccount.id !== fromAccountId) {
           await tx.account.update({
             where: { id: toAccount.id },
             data: { balance: { increment: amount } },
+          })
+          creditedTo = toAccount.userId
+
+          await tx.transaction.create({
+            data: {
+              accountId: toAccount.id,
+              type: "CREDIT",
+              amount, // credits stay positive
+              currency: toAccount.currency,
+              status: "COMPLETED",
+              category: "Transfer",
+              description: note || `Transfer from ${fromAccount.accountNumber}`,
+              reference: `${reference}C`,
+              counterparty: payload.name || "NovaPay user",
+            },
           })
         }
       }
@@ -59,19 +83,33 @@ export async function POST(request: Request) {
         data: {
           accountId: fromAccountId,
           type: "DEBIT",
-          amount,
+          amount: signedAmount,
           currency: fromAccount.currency,
           status: "COMPLETED",
           category: "Transfer",
           description: note || `Transfer to ${toAccountNumber || "external"}`,
           reference,
           counterparty: toAccountNumber || "External Account",
+          ...(typeof body.dedupeKey === "string" && body.dedupeKey ? { dedupeKey: body.dedupeKey } : {}),
         },
       })
-    })
+    }, { maxWait: 5000, timeout: 10000 })
 
-    return NextResponse.json({ transfer, reference })
+    // ── Post-transaction side effects (never block the money movement) ──
+    const points = await awardSpendPoints(payload.userId, amount)
+    await notify(
+      payload.userId,
+      "Money Sent",
+      `₹${amount.toLocaleString("en-IN")} sent to ${toAccountNumber || "external account"}${points ? ` · +${points} NovaPoints` : ""}`
+    )
+    await audit(payload.userId, "TRANSFER_INITIATED", `${toAccountNumber ? "Transfer" : "Payout"} of ₹${amount} (${reference})`)
+
+    return NextResponse.json({ transfer, reference, pointsEarned: points })
   } catch (error) {
+    if (error instanceof LimitError) {
+      const status = error.code === "KYC_REQUIRED" ? 403 : 400
+      return NextResponse.json({ error: error.message, code: error.code }, { status })
+    }
     if (error instanceof ApiError) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }

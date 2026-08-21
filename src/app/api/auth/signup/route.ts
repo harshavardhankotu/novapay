@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { signToken, hashPassword, setTokenCookie } from "@/lib/auth"
 import { normalizeIndianPhone } from "@/lib/validation"
+import { audit } from "@/lib/banking"
 import { prisma } from "@/lib/prisma"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
       },
     })
 
+    await audit(user.id, "SIGNUP", `Account created for ${email}`)
     setTokenCookie(response, token)
     return response
   } catch (error) {

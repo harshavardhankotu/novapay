@@ -179,7 +179,8 @@ model Transaction {
   status       TransactionStatus @default(COMPLETED)
   category     String
   description  String
-  reference    String            @unique
+    reference   String
+  dedupeKey   String?  @unique
   counterparty String?
   timestamp    DateTime          @default(now())
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Sidebar } from "./sidebar"
 import { Topbar } from "./topbar"
 import { MobileNav } from "./mobile-nav"
@@ -10,6 +10,15 @@ import { LangProvider } from "@/lib/i18n/provider"
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Opportunistic background-job runner: once per session, process any due
+  // banking events (FD maturities, EMI auto-debits, mandate pulls) — the way
+  // a bank's overnight batch would. Fire-and-forget; failures are silent.
+  useEffect(() => {
+    if (sessionStorage.getItem("novapay_jobs_ran")) return
+    sessionStorage.setItem("novapay_jobs_ran", "1")
+    fetch("/api/cron/process", { method: "POST" }).catch(() => {})
+  }, [])
 
   return (
     <LangProvider>
