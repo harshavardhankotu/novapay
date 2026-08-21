@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       }
       otpStore.delete(ticket)
 
-      const token = signToken({ userId: user.id, email: user.email, name: user.name, role: "USER" })
+      const token = signToken({ userId: user.id, email: user.email, name: user.name, role: (user as any).role || "USER" })
       const response = NextResponse.json({
         user: { id: user.id, name: user.name, email: user.email, phone: user.phone, kycLevel: user.kycLevel, status: user.status },
       })

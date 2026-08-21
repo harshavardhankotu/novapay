@@ -1,6 +1,19 @@
 # NovaPay — The Open-Source Digital Banking Platform
 
+[![CI](https://github.com/harshavardhankotu/novapay/actions/workflows/ci.yml/badge.svg)](https://github.com/harshavardhankotu/novapay/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-15%20passing-4ade80)
+![License](https://img.shields.io/badge/license-MIT-e8a33d)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+
 A production-grade **fintech starter kit & banking simulator** built with a calm, organic aesthetic — **deep water at golden hour**. Full auth with OTP, eKYC verification, a working ledger, 47 screens and 40+ API routes. Clone it, learn from it, ship your own neobank on it.
+
+## Screenshots
+
+> 📸 *Add your screenshots here — landing page hero, dashboard, cards page, admin analytics. Recommended: 1280×800 PNG or GIF under 2 MB each.*
+
+| Dashboard | Cards | Admin Analytics |
+|---|---|---|
+| *(screenshot)* | *(screenshot)* | *(screenshot)* |
 
 - **Instant demo:** click *Try Live Demo* on the landing page (self-seeds, no signup)
 - **Zero-cost stack:** runs entirely on free tiers (Vercel Hobby + Turso/local SQLite)
@@ -11,6 +24,7 @@ A production-grade **fintech starter kit & banking simulator** built with a calm
 | Docs | `/docs` in the app |
 | Pricing (OSS / Pro Kit / Institution) | `/pricing` |
 | Test login | `test@novapay.in` / `Test@1234` |
+| Admin analytics | `admin@novapay.in` / `Admin@1234` → `/admin` |
 
 A unified Indian digital-banking experience inspired by calm, natural aesthetics — **deep water at golden hour**. UPI, multi-currency accounts, zero-forex cards, AI budgeting, and family banking in one app.
 

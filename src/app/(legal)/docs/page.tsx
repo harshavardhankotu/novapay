@@ -34,6 +34,8 @@ const featureMatrix = [
   { area: "Wealth", items: "Mutual funds, digital gold, crypto holdings, credit score, RuPay credit line" },
   { area: "Lifestyle", items: "Budgeting + insights, family/kids accounts, eSIM, LRS remittances, disputes, referrals" },
   { area: "Platform", items: "PWA manifest, i18n provider (6 Indic languages), rate limiting, audit logs, sessions, 2FA UI" },
+  { area: "Business", items: "Admin analytics dashboard · waitlist capture · tracked affiliate slots · SEO sitemap/robots/OG" },
+  { area: "Theming", items: "3 switchable themes (Deepwater default, Aurora, Sunset Dunes) via data-theme attribute" },
 ]
 
 const deploySteps = [

@@ -78,6 +78,7 @@ model User {
   pan       String?   @unique
   kycLevel  KycLevel  @default(UNVERIFIED)
   status    UserStatus @default(ACTIVE)
+  role      String   @default("USER")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -88,6 +89,7 @@ model User {
   familiesChild    FamilyParent[] @relation("FamilyChildRelation")
   rewards          Reward[]
   kycDocuments     KycDocument[]
+  affiliateClicks  AffiliateClick[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
   receivingAccounts ReceivingAccount[]
@@ -834,6 +836,8 @@ model AffiliateClick {
   userId    String?
   referer   String?
   createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
 }
 
 model WaitlistEntry {

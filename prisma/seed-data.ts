@@ -31,6 +31,32 @@ type PrismaLike = {
 
 export const DEMO_EMAIL = "test@novapay.in"
 export const DEMO_PASSWORD = "Test@1234"
+export const ADMIN_EMAIL = "admin@novapay.in"
+export const ADMIN_PASSWORD = "Admin@1234"
+
+/**
+ * Ensures the operator/admin account exists. Cheap + idempotent.
+ */
+export async function ensureAdminUser(prisma: PrismaLike): Promise<boolean> {
+  const existing = await prisma.user.findUnique({ where: { email: ADMIN_EMAIL } })
+  if (existing) return false
+  try {
+    await prisma.user.create({
+      data: {
+        email: ADMIN_EMAIL,
+        phone: "9700000001",
+        name: "NovaPay Admin",
+        password: await hashPassword(ADMIN_PASSWORD),
+        kycLevel: "FULL",
+        pan: "ZZZZA9999Z",
+        role: "ADMIN",
+      },
+    })
+    return true
+  } catch {
+    return false
+  }
+}
 
 /**
  * Idempotent demo seed. Migrates legacy-branded users, otherwise creates
