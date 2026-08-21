@@ -170,9 +170,9 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-[#8ea6b6]">&copy; 2026 {APP_NAME}. RBI-compliant. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-[#8ea6b6]">
-            <Link href="#" className="hover:text-[#f3efe6] transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-[#f3efe6] transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-[#f3efe6] transition-colors">Compliance</Link>
+            <Link href="/privacy" className="hover:text-[#f3efe6] transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-[#f3efe6] transition-colors">Terms</Link>
+            <Link href="/compliance" className="hover:text-[#f3efe6] transition-colors">Compliance</Link>
           </div>
         </div>
       </footer>

@@ -16,7 +16,7 @@ interface UserState {
   setTransactions: (transactions: Transaction[]) => void
   setLoading: (loading: boolean) => void
   setAuthLoading: (loading: boolean) => void
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  login: (email: string, password: string, otpCode?: string, ticket?: string) => Promise<{ success: boolean; error?: string; requiresOtp?: boolean; ticket?: string; demoOtp?: string; maskedContact?: string; method?: string }>
   signup: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   fetchMe: () => Promise<void>
@@ -37,15 +37,27 @@ export const useUserStore = create<UserState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setAuthLoading: (isAuthLoading) => set({ isAuthLoading }),
 
-  login: async (email, password) => {
+  login: async (email, password, otpCode, ticket) => {
     try {
+      const body: Record<string, unknown> = { email, password }
+      if (otpCode && ticket) { body.otpCode = otpCode; body.ticket = ticket }
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (!res.ok) return { success: false, error: data.error || "Login failed" }
+      if (data.requiresOtp) {
+        return {
+          success: false,
+          requiresOtp: true,
+          ticket: data.ticket,
+          demoOtp: data.demoOtp,
+          maskedContact: data.maskedContact,
+          method: data.method,
+        }
+      }
       set({ user: data.user, isAuthLoading: false })
       return { success: true }
     } catch {

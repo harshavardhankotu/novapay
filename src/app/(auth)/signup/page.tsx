@@ -56,6 +56,9 @@ export default function SignupPage() {
     if (!form.firstName || !form.lastName || !form.phone || !form.email || !form.password) {
       setError("All fields are required"); return
     }
+    if (!/^[6-9][0-9]{9}$/.test(form.phone)) {
+      setError("Enter a valid 10-digit Indian mobile number"); return
+    }
     if (form.password !== form.confirmPassword) {
       setError("Passwords don't match"); return
     }
@@ -109,7 +112,13 @@ export default function SignupPage() {
             <Input placeholder="First Name" value={form.firstName} onChange={(e) => update("firstName", e.target.value)} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50" />
             <Input placeholder="Last Name" value={form.lastName} onChange={(e) => update("lastName", e.target.value)} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50" />
           </div>
-          <Input type="tel" placeholder="+91 99999 99999" value={form.phone} onChange={(e) => update("phone", e.target.value)} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50" />
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-[#1e3d4d] bg-[#0e2633] shrink-0 select-none">
+              <span className="text-base leading-none">🇮🇳</span>
+              <span className="text-sm text-white font-medium">+91</span>
+            </div>
+            <Input type="tel" inputMode="numeric" placeholder="98765 43210" value={form.phone} onChange={(e) => update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50 flex-1" />
+          </div>
           <Input type="email" placeholder="email@example.com" value={form.email} onChange={(e) => update("email", e.target.value)} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50" />
           <div className="relative">
             <Input type={showPwd ? "text" : "password"} placeholder="Password" value={form.password} onChange={(e) => update("password", e.target.value)} className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50 pr-10" />
@@ -128,8 +137,8 @@ export default function SignupPage() {
 
           <p className="text-[10px] text-[#8ea6b6] text-center leading-relaxed">
             By signing up, you agree to our{" "}
-            <Link href="#" className="text-[#e8a33d] hover:text-[#f2bd68]">Terms</Link> and{" "}
-            <Link href="#" className="text-[#e8a33d] hover:text-[#f2bd68]">Privacy Policy</Link>.
+            <Link href="/terms" className="text-[#f2bd68] hover:text-[#f6cf8f]">Terms</Link> and{" "}
+            <Link href="/privacy" className="text-[#f2bd68] hover:text-[#f6cf8f]">Privacy Policy</Link>.
             {APP_NAME} is regulated by RBI.
           </p>
 

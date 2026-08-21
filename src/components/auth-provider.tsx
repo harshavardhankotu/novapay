@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Ship } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
 
-const publicPaths = ["/login", "/signup", "/forgot-password", "/"]
+const publicPaths = ["/login", "/signup", "/forgot-password", "/", "/privacy", "/terms", "/compliance"]
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { fetchMe, isAuthLoading, user } = useUserStore()

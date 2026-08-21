@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff, Fingerprint, Ship, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, Fingerprint, Ship, ArrowLeft, ShieldCheck, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useUserStore } from "@/store/user-store"
@@ -17,20 +17,56 @@ export default function LoginPage() {
   const [showPwd, setShowPwd] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  // OTP step state
+  const [otpStep, setOtpStep] = useState(false)
+  const [ticket, setTicket] = useState("")
+  const [demoOtp, setDemoOtp] = useState("")
+  const [maskedContact, setMaskedContact] = useState("")
+  const [otpMethod, setOtpMethod] = useState<"sms" | "email">("email")
+  const [otpCode, setOtpCode] = useState("")
+
   const router = useRouter()
   const login = useUserStore((s) => s.login)
+
+  function handlePhoneChange(value: string) {
+    // Keep only digits, max 10
+    setPhone(value.replace(/\D/g, "").slice(0, 10))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+
+    if (otpStep) {
+      if (otpCode.length !== 6) { setError("Enter the 6-digit code"); return }
+      setLoading(true)
+      try {
+        const result = await login(mode === "email" ? email : phone, password, otpCode, ticket)
+        if (!result.success) { setError(result.error || "Verification failed"); setLoading(false); return }
+        router.push("/dashboard")
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
     const identifier = mode === "email" ? email : phone
     if (!identifier || !password) { setError("Fill in all fields"); return }
+    if (mode === "phone" && phone.length !== 10) { setError("Enter a valid 10-digit mobile number"); return }
     setLoading(true)
     try {
-      const result = mode === "email"
-        ? await login(email, password)
-        : await login(phone, password)
-      if (!result.success) { setError(result.error || "Login failed"); setLoading(false); return }
+      const result = await login(identifier, password)
+      if (result.requiresOtp) {
+        setTicket(result.ticket || "")
+        setDemoOtp(result.demoOtp || "")
+        setMaskedContact(result.maskedContact || "")
+        setOtpMethod((result.method as "sms" | "email") || "email")
+        setOtpStep(true)
+        setLoading(false)
+        return
+      }
+      if (!result.success) { setError(result.error || "Login failed"); return }
       router.push("/dashboard")
     } catch (err: any) {
       setError(err?.message || "Login failed")
@@ -60,58 +96,122 @@ export default function LoginPage() {
           <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-[#e8a33d] to-[#2dd4bf] items-center justify-center shadow-lg shadow-[#e8a33d]/30 mb-4">
             <Ship className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-          <p className="text-[#8ea6b6] text-sm mt-1">Log in to your NovaPay account</p>
+          {otpStep ? (
+            <>
+              <h1 className="text-2xl font-bold text-white">Verify it&apos;s you</h1>
+              <p className="text-[#8ea6b6] text-sm mt-1">We sent a 6-digit code via {otpMethod === "sms" ? "SMS" : "email"} to <span className="text-white">{maskedContact}</span></p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+              <p className="text-[#8ea6b6] text-sm mt-1">Log in to your NovaPay account</p>
+            </>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex bg-[#0e2633] rounded-xl p-1 border border-[#1e3d4d]">
-            <button type="button" onClick={() => setMode("email")} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${mode === "email" ? "bg-[#e8a33d]/20 text-white" : "text-[#8ea6b6]"}`}>Email</button>
-            <button type="button" onClick={() => setMode("phone")} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${mode === "phone" ? "bg-[#e8a33d]/20 text-white" : "text-[#8ea6b6]"}`}>Phone</button>
-          </div>
+          {!otpStep && (
+            <>
+              <div className="flex bg-[#0e2633] rounded-xl p-1 border border-[#1e3d4d]">
+                <button type="button" onClick={() => setMode("email")} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${mode === "email" ? "bg-[#e8a33d]/20 text-white" : "text-[#8ea6b6]"}`}>Email</button>
+                <button type="button" onClick={() => setMode("phone")} className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${mode === "phone" ? "bg-[#e8a33d]/20 text-white" : "text-[#8ea6b6]"}`}>Phone</button>
+              </div>
 
-          <Input
-            type={mode === "email" ? "email" : "tel"}
-            placeholder={mode === "email" ? "email@example.com" : "+91 99999 99999"}
-            value={mode === "email" ? email : phone}
-            onChange={(e) => mode === "email" ? setEmail(e.target.value) : setPhone(e.target.value)}
-            className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50"
-          />
+              {mode === "email" ? (
+                <Input
+                  type="email"
+                  placeholder="email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50"
+                />
+              ) : (
+                <div className="flex gap-2">
+                  <div className="flex items-center gap-1.5 h-10 px-3 rounded-lg border border-[#1e3d4d] bg-[#0e2633] shrink-0 select-none">
+                    <span className="text-base leading-none">🇮🇳</span>
+                    <span className="text-sm text-white font-medium">+91</span>
+                  </div>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="98765 43210"
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50 flex-1"
+                  />
+                </div>
+              )}
 
-          <div className="relative">
-            <Input
-              type={showPwd ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50 pr-10"
-            />
-            <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8ea6b6] hover:text-[#8ea6b6]">
-              {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+              <div className="relative">
+                <Input
+                  type={showPwd ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-[#0e2633] border-[#1e3d4d] text-white placeholder:text-[#8ea6b6] focus:border-[#e8a33d]/50 pr-10"
+                />
+                <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8ea6b6] hover:text-white">
+                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
 
-          <Link href="/forgot-password" className="block text-xs text-[#e8a33d] hover:text-[#f2bd68] text-right">Forgot password?</Link>
+              <Link href="/forgot-password" className="block text-xs text-[#f2bd68] hover:text-[#f6cf8f] text-right">Forgot password?</Link>
+            </>
+          )}
+
+          {otpStep && (
+            <>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoFocus
+                maxLength={6}
+                placeholder="••••••"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="w-full h-14 bg-[#0e2633] border border-[#1e3d4d] rounded-xl text-white text-2xl tracking-[0.5em] text-center focus:outline-none focus:border-[#e8a33d]/60 placeholder:text-[#8ea6b6]/40"
+              />
+              {demoOtp && (
+                <p className="text-xs text-center text-[#2dd4bf] bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 rounded-lg px-3 py-2">
+                  <ShieldCheck className="h-3 w-3 inline mr-1" />
+                  Demo mode — your OTP is <strong className="tracking-widest">{demoOtp}</strong> (no SMS provider configured)
+                </p>
+              )}
+              <button type="button" onClick={() => { setOtpStep(false); setOtpCode(""); setError("") }} className="block text-xs text-[#8ea6b6] hover:text-white mx-auto">
+                Use a different account
+              </button>
+            </>
+          )}
 
           {error && <p className="text-sm text-[#f87171] bg-[#f87171]/10 rounded-lg p-3 border border-[#f87171]/20">{error}</p>}
 
-          <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-white border-0 shadow-lg shadow-[#e8a33d]/25 h-11">
-            {loading ? "Logging in..." : "Log In"}
+          <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0 shadow-lg shadow-[#e8a33d]/25 h-11">
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : otpStep ? (
+              "Verify & Log In"
+            ) : (
+              "Log In"
+            )}
           </Button>
 
-          <div className="relative">
-            <div className="divider-cosmic my-4" />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#071a26] px-3 text-xs text-[#8ea6b6]">or</span>
-          </div>
+          {!otpStep && (
+            <>
+              <div className="relative">
+                <div className="divider-cosmic my-4" />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#071a26] px-3 text-xs text-[#8ea6b6]">or</span>
+              </div>
 
-          <Button variant="outline" disabled className="w-full border-[#1e3d4d] text-[#8ea6b6] gap-2">
-            <Fingerprint className="h-4 w-4" /> Use Fingerprint
-          </Button>
+              <Button variant="outline" disabled className="w-full border-[#1e3d4d] text-[#8ea6b6] gap-2">
+                <Fingerprint className="h-4 w-4" /> Use Fingerprint
+              </Button>
 
-          <p className="text-center text-xs text-[#8ea6b6] mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-[#f2bd68] hover:text-[#f6cf8f]">Sign up</Link>
-          </p>
+              <p className="text-center text-xs text-[#8ea6b6] mt-6">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="text-[#f2bd68] hover:text-[#f6cf8f]">Sign up</Link>
+              </p>
+            </>
+          )}
         </form>
       </div>
     </div>
