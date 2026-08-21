@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Tag, Gift, Zap, ShoppingBag, Coffee, Airplay } from "lucide-react"
+import { Tag, Gift, Zap, ShoppingBag, Coffee, Airplay, ExternalLink, BadgeCheck } from "lucide-react"
+import { AFFILIATE_SLOTS } from "@/config/affiliate"
 
 const catIcons: Record<string, any> = { shopping: ShoppingBag, food: Coffee, travel: Airplay, entertainment: Zap, general: Gift }
 
@@ -42,6 +43,35 @@ export default function OffersPage() {
           })}
         </div>
       }
+
+      {/* Partner referral slots — revenue-ready, tracked via /api/affiliate/[id] */}
+      <div className="pt-2">
+        <h2 className="text-lg font-semibold text-white mb-1">Recommended For You</h2>
+        <p className="text-[#8ea6b6] text-sm mb-4">Hand-picked partner offers based on your profile</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {AFFILIATE_SLOTS.map(slot => (
+            <a
+              key={slot.id}
+              href={`/api/affiliate/${slot.id}`}
+              target="_blank" rel="noopener noreferrer sponsored"
+              className={`group bg-[#0e2633] rounded-2xl p-5 border transition-all hover:border-[#e8a33d]/40 card-hover ${slot.featured ? "border-[#e8a33d]/30 bg-gradient-to-br from-[#e8a33d]/10 to-[#0e2633]" : "border-[#1e3d4d]"}`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <BadgeCheck className="w-5 h-5 text-[#f2bd68]" />
+                <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#1e3d4d] text-[#8ea6b6]">Sponsored</span>
+              </div>
+              <p className="text-white font-semibold">{slot.title}</p>
+              <p className="text-[#8ea6b6] text-sm mt-1">{slot.desc}</p>
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-sm font-bold text-[#f2bd68]">{slot.reward}</span>
+                <span className="flex items-center gap-1 text-xs text-[#2dd4bf] group-hover:text-[#f6cf8f] transition-colors">
+                  Apply with {slot.partner} <ExternalLink className="w-3 h-3" />
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

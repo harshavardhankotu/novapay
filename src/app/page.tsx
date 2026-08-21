@@ -6,6 +6,7 @@ import {
   Fingerprint, Zap, Check,
 } from "lucide-react"
 import { APP_NAME, GITHUB_URL } from "@/lib/constants"
+import { WaitlistForm } from "@/components/waitlist-form"
 
 const features = [
   { icon: Smartphone, title: "Unified UPI + Global", desc: "One interface for UPI, domestic transfers & international spending flows" },
@@ -236,6 +237,12 @@ export default function LandingPage() {
               <GitFork className="h-5 w-5" /> View Source
             </Button>
           </a>
+        </div>
+
+        <div className="mt-14 pt-10 border-t border-[#1e3d4d]/50">
+          <p className="text-lg font-semibold text-white">Not ready to dive in?</p>
+          <p className="text-sm text-[#8ea6b6] mt-1 mb-5">Join the list for launch updates, new modules & the Pro Kit drop.</p>
+          <WaitlistForm source="landing-footer" />
         </div>
       </section>
 

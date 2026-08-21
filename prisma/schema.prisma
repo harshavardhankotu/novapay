@@ -827,3 +827,18 @@ model UpiId {
   user    User    @relation(fields: [userId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  slotId    String
+  userId    String?
+  referer   String?
+  createdAt DateTime @default(now())
+}
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("landing")
+  createdAt DateTime @default(now())
+}

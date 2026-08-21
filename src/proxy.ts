@@ -15,6 +15,7 @@ const publicPaths = [
   "/api/auth/login",
   "/api/auth/signup",
   "/api/auth/demo",
+  "/api/waitlist",
 ]
 const adminPaths = ["/admin"]
 

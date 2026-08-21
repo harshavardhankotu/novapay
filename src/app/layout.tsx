@@ -13,10 +13,30 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 })
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://novapay.vercel.app"
+
 export const metadata: Metadata = {
-  title: "NovaPay - Finance Beyond Horizons",
+  metadataBase: new URL(SITE),
+  title: {
+    default: "NovaPay — The Open-Source Digital Banking Platform",
+    template: "%s | NovaPay",
+  },
   description:
-    "India's most innovative digital banking platform. UPI, multi-currency accounts, budgeting, and more.",
+    "Production-grade fintech starter kit: OTP auth, eKYC verification, working ledger, 47 screens, 40+ API routes. Free, open source, runs on ₹0/month.",
+  keywords: ["open source banking", "fintech starter kit", "next.js banking", "UPI app template", "digital bank clone", "neobank open source"],
+  openGraph: {
+    type: "website",
+    siteName: "NovaPay",
+    title: "NovaPay — The Open-Source Digital Banking Platform",
+    description:
+      "Full-stack fintech starter kit with OTP auth, eKYC, ledger & 47 screens. MIT licensed. Try the live demo in one click.",
+    url: SITE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NovaPay — The Open-Source Digital Banking Platform",
+    description: "Full-stack fintech starter kit with OTP auth, eKYC, ledger & 47 screens. MIT licensed.",
+  },
 }
 
 export const viewport: Viewport = {
