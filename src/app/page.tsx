@@ -1,22 +1,33 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Smartphone, Globe, Shield, PieChart, Users, Gift, ArrowRight, Star, Sparkles, Ship } from "lucide-react"
-import { APP_NAME } from "@/lib/constants"
+import {
+  Smartphone, Globe, Shield, PieChart, Users, Gift, ArrowRight, Star,
+  Sparkles, Ship, GitFork, PlayCircle, BookOpen, Layers, Database,
+  Fingerprint, Zap, Check,
+} from "lucide-react"
+import { APP_NAME, GITHUB_URL } from "@/lib/constants"
 
 const features = [
-  { icon: Smartphone, title: "Unified UPI + Global", desc: "One app for UPI, domestic transfers & international spending" },
-  { icon: Globe, title: "Zero-Forex Spending", desc: "Interbank rates with 0% markup on international transactions" },
-  { icon: Shield, title: "5-Minute KYC", desc: "Aadhaar eKYC + Video verification in under 5 minutes" },
-  { icon: PieChart, title: "AI Budgeting", desc: "Smart insights with auto-categorization & spending forecasts" },
-  { icon: Users, title: "Family Banking", desc: "Kids accounts with parent controls, limits & allowances" },
-  { icon: Gift, title: "NovaPoints Rewards", desc: "Earn points on every spend, redeem for cashback & travel" },
+  { icon: Smartphone, title: "Unified UPI + Global", desc: "One interface for UPI, domestic transfers & international spending flows" },
+  { icon: Globe, title: "Zero-Forex Flows", desc: "Interbank-rate simulation with 0% markup on international transactions" },
+  { icon: Shield, title: "Real eKYC Logic", desc: "Aadhaar (Verhoeff checksum) + PAN verification with DigiLocker-style OTP" },
+  { icon: PieChart, title: "Budgeting Engine", desc: "Auto-categorization, budgets, insights & round-up savings" },
+  { icon: Users, title: "Family Banking", desc: "Kids accounts with parent controls, limits and allowances" },
+  { icon: Gift, title: "Rewards System", desc: "Points, tiers and redemptions — wired to a real ledger" },
 ]
 
-const stats = [
-  { label: "Active Users", value: "450K+" },
-  { label: "Zero Forex Fee", value: "₹0" },
-  { label: "KYC Time", value: "<5 min" },
-  { label: "App Rating", value: "4.7★" },
+const kitStats = [
+  { label: "API Routes", value: "40+" },
+  { label: "Pages", value: "47" },
+  { label: "External Dependencies", value: "0" },
+  { label: "Cost to Run", value: "₹0" },
+]
+
+const stack = [
+  { icon: Layers, title: "Next.js 16 App Router", desc: "Server components, route handlers, Turbopack-ready" },
+  { icon: Database, title: "Prisma + libSQL/SQLite", desc: "File-based in dev, one-line switch to Turso free tier" },
+  { icon: Fingerprint, title: "JWT Auth + OTP + eKYC", desc: "HttpOnly cookies, bcrypt, masked document storage" },
+  { icon: Zap, title: "Tailwind v4 Design System", desc: "Deepwater & Golden Hour theme, dark-first, glass-morphism" },
 ]
 
 function Particles() {
@@ -57,50 +68,61 @@ export default function LandingPage() {
             <span className="block text-[10px] text-[#8ea6b6] font-medium tracking-tight">Finance Beyond Horizons</span>
           </div>
         </Link>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium text-[#8ea6b6] hover:text-white transition-colors">Log In</Link>
-          <Link href="/signup"><Button size="sm" className="bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0 shadow-lg shadow-[#e8a33d]/25">Get Started</Button></Link>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <Link href="/docs" className="hidden sm:block text-sm font-medium text-[#8ea6b6] hover:text-white transition-colors">Docs</Link>
+          <Link href="/pricing" className="text-sm font-medium text-[#8ea6b6] hover:text-white transition-colors">Pricing</Link>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-[#8ea6b6] hover:text-white transition-colors" aria-label="GitHub repository">
+            <GitFork className="h-5 w-5" />
+          </a>
+          <Link href="/login" className="hidden sm:block text-sm font-medium text-[#8ea6b6] hover:text-white transition-colors">Log In</Link>
         </div>
       </header>
 
+      {/* HERO */}
       <section className="relative z-10 flex-1 flex flex-col items-center justify-center px-5 py-16 sm:py-24 text-center max-w-6xl mx-auto w-full">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#e8a33d]/10 border border-[#e8a33d]/20 text-[#f2bd68] text-xs sm:text-sm font-medium mb-6 animate-fade-in">
           <Sparkles className="h-3.5 w-3.5 text-[#2dd4bf]" />
-          Now available across India
+          Open Source · MIT Licensed · Zero-Cost Stack
         </div>
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight max-w-4xl leading-[1.1] animate-slide-up">
-          Banking That{" "}
-          <span className="text-gradient">Flows With The Tide</span>
+          The Open-Source{" "}
+          <span className="text-gradient">Digital Banking Platform</span>
         </h1>
-        <p className="mt-5 text-base sm:text-lg text-[#8ea6b6] max-w-xl leading-relaxed animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          UPI, multi-currency accounts, zero-forex cards, AI budgeting, and family banking — all in one calm, seamless experience.
+        <p className="mt-5 text-base sm:text-lg text-[#8ea6b6] max-w-2xl leading-relaxed animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          A production-grade fintech starter kit: full auth with OTP, eKYC verification, a real double-entry-style
+          ledger, 47 screens and 40+ API routes. Clone it, learn from it, ship your own neobank on it.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <Link href="/signup">
-            <Button size="xl" className="w-full sm:w-auto text-base gap-2 bg-gradient-to-r from-[#e8a33d] to-[#2dd4bf] hover:from-[#d18a24] hover:to-[#14a390] text-[#071a26] border-0 shadow-lg shadow-[#e8a33d]/30 group">
-              Launch Your Account <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          <Link href="/dashboard?demo=1">
+            <Button size="xl" className="w-full sm:w-auto text-base gap-2 bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0 shadow-lg shadow-[#e8a33d]/30 group">
+              <PlayCircle className="h-5 w-5" /> Try Live Demo
             </Button>
           </Link>
-          <Link href="/dashboard">
-            <Button variant="outline" size="xl" className="w-full sm:w-auto text-base border-[#1e3d4d] text-[#8ea6b6] hover:bg-[#0e2633] hover:text-white hover:border-[#e8a33d]/30">
-              Explore Dashboard
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+            <Button variant="outline" size="xl" className="w-full sm:w-auto text-base border-[#1e3d4d] text-[#c9d4de] hover:bg-[#0e2633] hover:text-white hover:border-[#e8a33d]/30 gap-2">
+              <GitFork className="h-5 w-5" /> Star on GitHub
             </Button>
-          </Link>
+          </a>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 mt-12 w-full max-w-2xl animate-slide-up" style={{ animationDelay: "0.3s" }}>
-          {stats.map((s) => (
-            <div key={s.label} className="text-center p-3 rounded-2xl bg-[#0e2633]/50 border border-[#1e3d4d]">
+        <p className="mt-4 text-xs text-[#8ea6b6] animate-fade-in">
+          No signup needed for the demo · or <Link href="/pricing" className="text-[#f2bd68] hover:text-[#f6cf8f]">get the Pro Kit →</Link>
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 mt-12 w-full max-w-3xl animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          {kitStats.map((s) => (
+            <div key={s.label} className="text-center p-4 rounded-2xl bg-[#0e2633]/50 border border-[#1e3d4d]">
               <p className="text-2xl sm:text-3xl font-bold text-gradient">{s.value}</p>
-              <p className="text-xs sm:text-sm text-[#8ea6b6] mt-0.5">{s.label}</p>
+              <p className="text-xs sm:text-sm text-[#8ea6b6] mt-1">{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
+      {/* FEATURES */}
       <section className="relative z-10 px-5 py-16 max-w-6xl mx-auto w-full">
         <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Everything you need, nothing you don&apos;t</h2>
-          <p className="text-[#8ea6b6] mt-2">Built for India. Calm by design.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">Every fintech feature you need, already built</h2>
+          <p className="text-[#8ea6b6] mt-2">Not a UI mockup — every screen is wired to working APIs.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f) => {
@@ -118,61 +140,114 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* STACK */}
+      <section className="relative z-10 px-5 py-16 max-w-6xl mx-auto w-full">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">Modern stack, zero-cost to run</h2>
+          <p className="text-[#8ea6b6] mt-2">Deploys free on Vercel Hobby + Turso free tier. No API keys required.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {stack.map((s) => {
+            const Icon = s.icon
+            return (
+              <div key={s.title} className="flex items-start gap-4 p-5 rounded-2xl bg-[#0e2633]/50 border border-[#1e3d4d] card-hover">
+                <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-[#e8a33d]/15 to-[#2dd4bf]/15 flex items-center justify-center shrink-0">
+                  <Icon className="h-5 w-5 text-[#2dd4bf]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">{s.title}</h3>
+                  <p className="text-sm text-[#8ea6b6] mt-1 leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* WHO IS IT FOR */}
       <section className="relative z-10 px-5 py-16 bg-[#06232f] border-y border-[#1e3d4d]">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
             <div>
-              <span className="text-xs font-semibold text-[#2dd4bf] uppercase tracking-wider">The Future Is Clear</span>
-              <h2 className="text-2xl sm:text-3xl font-bold mt-2 text-white">India&apos;s first truly unified banking experience</h2>
-              <p className="text-[#8ea6b6] mt-3 leading-relaxed">
-                No more juggling between GPay, your bank app, CRED, and Wise. Get everything in one place with better rates,
-                smarter insights, and real-time control.
-              </p>
-              <div className="flex flex-col gap-3 mt-6">
+              <span className="text-xs font-semibold text-[#2dd4bf] uppercase tracking-wider">Built For Builders</span>
+              <h2 className="text-2xl sm:text-3xl font-bold mt-2 text-white">Three ways people use NovaPay</h2>
+              <div className="mt-6 space-y-5">
                 {[
-                  "UPI + Domestic Cards + Multi-Currency Wallets",
-                  "Zero-forex international spending at interbank rates",
-                  "AI-powered budgeting with intelligent forecasts",
-                  "Family accounts with granular parental controls",
-                ].map((item) => (
-                  <div key={item} className="flex items-start gap-3">
-                    <div className="h-5 w-5 rounded-full bg-[#4ade80]/20 flex items-center justify-center mt-0.5 shrink-0">
-                      <Star className="h-3 w-3 text-[#4ade80]" />
+                  { title: "Launchpad", desc: "Fork it as the foundation for your own fintech product — auth, KYC, ledger and design system already done." },
+                  { title: "Classroom", desc: "Business & engineering schools use it as a hands-on banking lab: students operate a fully working digital bank." },
+                  { title: "Portfolio", desc: "The deepest full-stack project you can show: payments simulation, regulatory logic, tests, CI and theming." },
+                ].map((u) => (
+                  <div key={u.title} className="flex items-start gap-3">
+                    <div className="h-6 w-6 rounded-full bg-[#4ade80]/20 flex items-center justify-center mt-0.5 shrink-0">
+                      <Check className="h-3.5 w-3.5 text-[#4ade80]" />
                     </div>
-                    <span className="text-sm text-[#f3efe6]/80">{item}</span>
+                    <div>
+                      <p className="font-semibold text-white text-sm">{u.title}</p>
+                      <p className="text-sm text-[#8ea6b6] mt-0.5 leading-relaxed">{u.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-6">
-                <Link href="/signup"><Button className="bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0 shadow-lg shadow-[#e8a33d]/25">Get Started <ArrowRight className="h-4 w-4 ml-1" /></Button></Link>
+              <div className="flex flex-wrap gap-3 mt-8">
+                <Link href="/docs"><Button variant="outline" className="gap-2 border-[#1e3d4d] text-[#c9d4de] hover:bg-[#0e2633] hover:text-white"><BookOpen className="h-4 w-4" /> Read the Docs</Button></Link>
+                <Link href="/pricing"><Button className="gap-2 bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0">See Pricing <ArrowRight className="h-4 w-4" /></Button></Link>
               </div>
             </div>
-            <div className="rounded-3xl p-8 sm:p-10 bg-gradient-to-br from-[#e8a33d]/10 to-[#2dd4bf]/5 border border-[#1e3d4d] hidden lg:block">
-              <p className="text-lg font-semibold text-white">What our early users say</p>
-              <div className="mt-6 space-y-6">
+            <div className="rounded-3xl p-8 sm:p-10 bg-gradient-to-br from-[#e8a33d]/10 to-[#2dd4bf]/5 border border-[#1e3d4d]">
+              <p className="text-lg font-semibold text-white">What&apos;s inside the box</p>
+              <div className="mt-6 space-y-4">
                 {[
-                  { quote: "Finally, an app that handles my UPI payments AND my USD spending without two different apps.", name: "Priya S., Bangalore" },
-                  { quote: "Saved over ₹8,000 in forex fees on my last international trip. Game changer.", name: "Arun M., Mumbai" },
-                  { quote: "The family banking feature is exactly what I needed for my teenager.", name: "Neha K., Delhi" },
-                ].map((t) => (
-                  <div key={t.name} className="border-l-2 border-[#e8a33d]/50 pl-4">
-                    <p className="text-sm text-[#f3efe6]/90 italic">&ldquo;{t.quote}&rdquo;</p>
-                    <p className="text-xs text-[#8ea6b6] mt-1">{t.name}</p>
+                  "OTP login with Indian phone (+91) handling",
+                  "DigiLocker-style eKYC: Aadhaar Verhoeff checksum + PAN regex",
+                  "Atomic transfers & bill payments that actually move balances",
+                  "Cards, FDs, loans, mutual funds, gold, crypto, family accounts",
+                  "Legal pages, compliance centre & PWA manifest",
+                  "Vitest test suite + GitHub Actions CI",
+                ].map((item) => (
+                  <div key={item} className="flex items-start gap-3">
+                    <Star className="h-4 w-4 text-[#fbbf24] mt-0.5 shrink-0" />
+                    <span className="text-sm text-[#c9d4de] leading-relaxed">{item}</span>
                   </div>
                 ))}
+              </div>
+              <div className="mt-8 p-4 rounded-xl bg-[#071a26]/60 border border-[#1e3d4d]">
+                <p className="text-xs text-[#8ea6b6] leading-relaxed">
+                  Money movement is simulated by design — meaning zero licences, zero compliance costs,
+                  and you can legally deploy it anywhere today.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="relative z-10 px-5 py-8 max-w-6xl mx-auto w-full">
+      {/* FINAL CTA */}
+      <section className="relative z-10 px-5 py-20 text-center max-w-3xl mx-auto w-full">
+        <h2 className="text-3xl sm:text-4xl font-bold text-white">Start exploring in one click</h2>
+        <p className="text-[#8ea6b6] mt-3">The demo drops you into a fully populated account — cards, transactions, deposits and all.</p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+          <Link href="/dashboard?demo=1">
+            <Button size="lg" className="gap-2 bg-gradient-to-r from-[#e8a33d] to-[#2dd4bf] hover:from-[#d18a24] hover:to-[#14a390] text-[#071a26] border-0 shadow-lg shadow-[#e8a33d]/30 group">
+              <PlayCircle className="h-5 w-5" /> Launch Live Demo
+            </Button>
+          </Link>
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+            <Button size="lg" variant="outline" className="gap-2 border-[#1e3d4d] text-[#c9d4de] hover:bg-[#0e2633] hover:text-white">
+              <GitFork className="h-5 w-5" /> View Source
+            </Button>
+          </a>
+        </div>
+      </section>
+
+      <footer className="relative z-10 px-5 py-8 max-w-6xl mx-auto w-full border-t border-[#1e3d4d]/50">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-[#8ea6b6]">&copy; 2026 {APP_NAME}. RBI-compliant. All rights reserved.</p>
+          <p className="text-sm text-[#8ea6b6]">&copy; 2026 {APP_NAME}. Open source under MIT.</p>
           <div className="flex items-center gap-6 text-sm text-[#8ea6b6]">
             <Link href="/privacy" className="hover:text-[#f3efe6] transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-[#f3efe6] transition-colors">Terms</Link>
             <Link href="/compliance" className="hover:text-[#f3efe6] transition-colors">Compliance</Link>
+            <Link href="/pricing" className="hover:text-[#f3efe6] transition-colors">Pricing</Link>
+            <Link href="/docs" className="hover:text-[#f3efe6] transition-colors">Docs</Link>
           </div>
         </div>
       </footer>

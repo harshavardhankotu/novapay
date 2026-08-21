@@ -2,7 +2,20 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { verifyToken } from "@/lib/auth"
 
-const publicPaths = ["/login", "/signup", "/forgot-password", "/", "/api/auth/login", "/api/auth/signup"]
+const publicPaths = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/",
+  "/privacy",
+  "/terms",
+  "/compliance",
+  "/pricing",
+  "/docs",
+  "/api/auth/login",
+  "/api/auth/signup",
+  "/api/auth/demo",
+]
 const adminPaths = ["/admin"]
 
 export function proxy(request: NextRequest) {

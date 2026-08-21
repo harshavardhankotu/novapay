@@ -1,4 +1,16 @@
-# NovaPay — Finance Beyond Horizons
+# NovaPay — The Open-Source Digital Banking Platform
+
+A production-grade **fintech starter kit & banking simulator** built with a calm, organic aesthetic — **deep water at golden hour**. Full auth with OTP, eKYC verification, a working ledger, 47 screens and 40+ API routes. Clone it, learn from it, ship your own neobank on it.
+
+- **Instant demo:** click *Try Live Demo* on the landing page (self-seeds, no signup)
+- **Zero-cost stack:** runs entirely on free tiers (Vercel Hobby + Turso/local SQLite)
+- **Licence-free by design:** money movement is simulated — no RBI/NPCI dependencies to deploy
+
+| | |
+|---|---|
+| Docs | `/docs` in the app |
+| Pricing (OSS / Pro Kit / Institution) | `/pricing` |
+| Test login | `test@novapay.in` / `Test@1234` |
 
 A unified Indian digital-banking experience inspired by calm, natural aesthetics — **deep water at golden hour**. UPI, multi-currency accounts, zero-forex cards, AI budgeting, and family banking in one app.
 

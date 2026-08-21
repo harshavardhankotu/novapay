@@ -1,29 +1,55 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useUserStore } from "@/store/user-store"
 import { usePathname, useRouter } from "next/navigation"
 import { Ship } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
 
-const publicPaths = ["/login", "/signup", "/forgot-password", "/", "/privacy", "/terms", "/compliance"]
+const publicPaths = ["/login", "/signup", "/forgot-password", "/", "/privacy", "/terms", "/compliance", "/pricing", "/docs"]
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { fetchMe, isAuthLoading, user } = useUserStore()
   const pathname = usePathname()
   const router = useRouter()
+  const [startingDemo, setStartingDemo] = useState(false)
 
   useEffect(() => {
     fetchMe()
   }, [])
 
   useEffect(() => {
-    if (!isAuthLoading && !user && !publicPaths.includes(pathname)) {
+    if (isAuthLoading || user) return
+    const wantsDemo =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("demo") === "1"
+
+    if (wantsDemo) {
+      let cancelled = false
+      setStartingDemo(true)
+      ;(async () => {
+        try {
+          const res = await fetch("/api/auth/demo", { method: "POST" })
+          if (!res.ok) throw new Error("demo unavailable")
+          await fetchMe()
+          if (!cancelled && typeof window !== "undefined") {
+            window.history.replaceState({}, "", "/dashboard")
+          }
+        } catch {
+          if (!cancelled) router.push("/login")
+        } finally {
+          if (!cancelled) setStartingDemo(false)
+        }
+      })()
+      return () => { cancelled = true }
+    }
+
+    if (!publicPaths.includes(pathname)) {
       router.push("/login")
     }
   }, [isAuthLoading, user, pathname, router])
 
-  if (isAuthLoading && !publicPaths.includes(pathname)) {
+  if ((isAuthLoading || startingDemo) && !publicPaths.includes(pathname)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#071a26]">
         <div className="flex flex-col items-center gap-3">
@@ -33,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           <div className="h-1.5 w-24 rounded-full bg-[#1e3d4d] overflow-hidden">
             <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#e8a33d] to-[#2dd4bf] animate-pulse" />
           </div>
-          <p className="text-xs text-[#8ea6b6]">{APP_NAME} loading...</p>
+          <p className="text-xs text-[#8ea6b6]">{startingDemo ? "Preparing your demo account..." : `${APP_NAME} loading...`}</p>
         </div>
       </div>
     )

@@ -1,5 +1,7 @@
 export const APP_NAME = "NovaPay"
 export const APP_TAGLINE = "Finance Beyond Horizons"
+export const GITHUB_URL = "https://github.com/harshavardhankotu/novapay"
+export const GITHUB_REPO = "harshavardhankotu/novapay"
 
 export const CURRENCIES = [
   { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
