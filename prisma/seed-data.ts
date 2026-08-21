@@ -1,32 +1,34 @@
 import { hashPassword } from "../src/lib/auth/password"
 import { APP_NAME } from "../src/lib/constants"
 
+// Seed helpers run outside the Next.js app against a real Prisma client;
+// a loose type is intentional here to keep the seed self-contained.
 type PrismaLike = {
   user: {
-    findUnique: Function
-    findFirst: Function
-    update: Function
-    create: Function
+    findUnique(args: { where: { email?: string } }): Promise<Record<string, unknown> | null>
+    findFirst(args: Record<string, unknown>): Promise<{ id: string; accounts: Array<{ id: string; accountNumber: string; upiHandle?: string | null }> } | null>
+    update(args: Record<string, unknown>): Promise<unknown>
+    create(args: Record<string, unknown>): Promise<{ id: string; accounts: Array<{ id: string }> }>
   }
-  account: { update: Function }
-  transaction: { create: Function; createMany?: Function }
-  card: { createMany: Function }
-  beneficiary: { createMany: Function }
-  budget: { createMany: Function }
-  fixedDeposit: { create: Function }
-  loan: { create: Function }
-  mutualFundInvestment: { create: Function }
-  insurancePolicy: { create: Function }
-  biller: { create: Function }
-  billPayment: { create: Function }
-  paymentMandate: { create: Function }
-  smartPocket: { create: Function }
-  esimPackage: { create: Function }
-  cryptoHolding: { createMany: Function }
-  lRSTransaction: { create: Function }
-  offer: { createMany: Function }
-  notification: { createMany: Function }
-  auditLog: { createMany: Function }
+  account: { update(args: Record<string, unknown>): Promise<unknown>; findUnique(args: { where: { upiHandle: string } }): Promise<unknown> }
+  transaction: { create(args: Record<string, unknown>): Promise<unknown> }
+  card: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  beneficiary: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  budget: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  fixedDeposit: { create(args: Record<string, unknown>): Promise<unknown> }
+  loan: { create(args: Record<string, unknown>): Promise<unknown> }
+  mutualFundInvestment: { create(args: Record<string, unknown>): Promise<unknown> }
+  insurancePolicy: { create(args: Record<string, unknown>): Promise<unknown> }
+  biller: { create(args: Record<string, unknown>): Promise<{ id: string }> }
+  billPayment: { create(args: Record<string, unknown>): Promise<unknown> }
+  paymentMandate: { create(args: Record<string, unknown>): Promise<unknown> }
+  smartPocket: { create(args: Record<string, unknown>): Promise<unknown> }
+  esimPackage: { create(args: Record<string, unknown>): Promise<unknown> }
+  cryptoHolding: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  lRSTransaction: { create(args: Record<string, unknown>): Promise<unknown> }
+  offer: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  notification: { createMany(args: Record<string, unknown>): Promise<unknown> }
+  auditLog: { createMany(args: Record<string, unknown>): Promise<unknown> }
 }
 
 export const DEMO_EMAIL = "test@novapay.in"

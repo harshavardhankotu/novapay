@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { signToken, verifyPassword, setTokenCookie } from "@/lib/auth"
 import { generateOtp, normalizeIndianPhone } from "@/lib/validation"
+import { checkRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 
 // In-memory OTP store: ticket -> { userId, code, expiresAt, attempts }
@@ -24,6 +25,15 @@ export async function POST(request: Request) {
 
     if (!identifierRaw || !password) {
       return NextResponse.json({ error: "Email/phone and password required" }, { status: 400 })
+    }
+
+    // Brute-force guard: max 8 credential submissions per minute per IP+identifier.
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "local"
+    if (!checkRateLimit(`login:${ip}:${identifierRaw.toLowerCase()}`, 8, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please wait a minute and try again." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      )
     }
 
     // Identifier can be an email OR a 10-digit Indian phone

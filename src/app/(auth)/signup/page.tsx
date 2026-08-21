@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useUserStore } from "@/store/user-store"
 import { APP_NAME } from "@/lib/constants"
+import { StarField } from "@/components/star-field"
 
 function PasswordStrength({ password }: { password: string }) {
   const checks = [
@@ -85,14 +86,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#071a26] relative overflow-hidden px-4 py-8">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-20%,rgba(232,163,61,0.14)_0%,transparent_60%),radial-gradient(ellipse_40%_30%_at_100%_100%,rgba(45,212,191,0.07)_0%,transparent_60%)]" />
-      {Array.from({ length: 30 }).map((_, i) => (
-        <div key={i} className="star" style={{
-          left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-          width: `${Math.random() * 2 + 1}px`, height: `${Math.random() * 2 + 1}px`,
-          opacity: Math.random() * 0.5 + 0.2,
-          animationDelay: `${Math.random() * 5}s`, animationDuration: `${Math.random() * 3 + 2}s`,
-        }} />
-      ))}
+      <StarField count={30} />
 
       <div className="relative z-10 w-full max-w-sm">
         <Link href="/" className="flex items-center gap-2 text-[#8ea6b6] hover:text-white mb-8 transition-colors">

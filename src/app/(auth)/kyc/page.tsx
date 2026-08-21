@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Camera, FileText, ShieldCheck, Check, ChevronRight, AlertCircle, Loader2, Ship, Smartphone } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
+import { StarField } from "@/components/star-field"
 import { validateAadhaar, validatePan } from "@/lib/validation"
 
 const steps = [

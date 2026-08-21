@@ -1,17 +1,30 @@
 import { NextResponse } from "next/server"
 import { signToken, hashPassword, setTokenCookie } from "@/lib/auth"
+import { normalizeIndianPhone } from "@/lib/validation"
 import { prisma } from "@/lib/prisma"
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 export async function POST(request: Request) {
   try {
-    const { name, email, phone, password } = await request.json()
+    const raw = await request.json()
+    const name = typeof raw.name === "string" ? raw.name.trim() : ""
+    const email = typeof raw.email === "string" ? raw.email.trim().toLowerCase() : ""
+    const rawPhone = typeof raw.phone === "string" ? raw.phone : ""
+    const phone = normalizeIndianPhone(rawPhone) || ""
+    const password = typeof raw.password === "string" ? raw.password : ""
 
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !rawPhone || !password) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 })
     }
-
-    if (password.length < 8) {
-      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 })
+    if (!EMAIL_RE.test(email) || email.length > 254) {
+      return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 })
+    }
+    if (!phone) {
+      return NextResponse.json({ error: "Enter a valid 10-digit Indian mobile number" }, { status: 400 })
+    }
+    if (password.length < 8 || password.length > 128) {
+      return NextResponse.json({ error: "Password must be between 8 and 128 characters" }, { status: 400 })
     }
 
     const existing = await prisma.user.findFirst({
@@ -23,6 +36,12 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hashPassword(password)
+
+    // Ensure a unique UPI handle even when two people share an email prefix
+    let upiHandle = `${email.split("@")[0].replace(/[^a-z0-9]/g, "")}@novapay`
+    if (await prisma.account.findUnique({ where: { upiHandle } })) {
+      upiHandle = `${upiHandle.split("@")[0]}${Date.now().toString().slice(-5)}@novapay`
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -37,7 +56,7 @@ export async function POST(request: Request) {
             currency: "INR",
             accountNumber: `NOVAINR${Date.now().toString().slice(-8)}`,
             ifsc: "NOVA0000001",
-            upiHandle: `${email.split("@")[0]}@novapay`,
+            upiHandle,
           },
         },
         rewards: {

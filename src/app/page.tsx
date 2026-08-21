@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { APP_NAME, GITHUB_URL } from "@/lib/constants"
 import { WaitlistForm } from "@/components/waitlist-form"
+import { StarField } from "@/components/star-field"
 
 const features = [
   { icon: Smartphone, title: "Unified UPI + Global", desc: "One interface for UPI, domestic transfers & international spending flows" },
@@ -32,25 +33,7 @@ const stack = [
 ]
 
 function Particles() {
-  return (
-    <>
-      {Array.from({ length: 50 }).map((_, i) => (
-        <div
-          key={i}
-          className="star"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 2 + 1}px`,
-            height: `${Math.random() * 2 + 1}px`,
-            opacity: Math.random() * 0.5 + 0.2,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${Math.random() * 3 + 2}s`,
-          }}
-        />
-      ))}
-    </>
-  )
+  return <StarField count={50} />
 }
 
 export default function LandingPage() {

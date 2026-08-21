@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Mail, ArrowLeft, Send, CheckCircle, AlertCircle, Ship } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
+import { StarField } from "@/components/star-field"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -25,14 +26,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-5 bg-[#071a26] relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-20%,rgba(232,163,61,0.12)_0%,transparent_60%),radial-gradient(ellipse_40%_30%_at_100%_100%,rgba(45,212,191,0.06)_0%,transparent_60%)]" />
-      {Array.from({ length: 20 }).map((_, i) => (
-        <div key={i} className="star" style={{
-          left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-          width: `${Math.random() * 2 + 1}px`, height: `${Math.random() * 2 + 1}px`,
-          opacity: Math.random() * 0.5 + 0.2,
-          animationDelay: `${Math.random() * 5}s`, animationDuration: `${Math.random() * 3 + 2}s`,
-        }} />
-      ))}
+      <StarField count={20} />
       <div className="relative z-10 w-full max-w-sm animate-slide-up">
         <div className="text-center mb-8">
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#e8a33d] to-[#2dd4bf] flex items-center justify-center mx-auto shadow-lg shadow-[#e8a33d]/30">

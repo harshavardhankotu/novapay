@@ -3,6 +3,10 @@ import jwt from "jsonwebtoken"
 const JWT_SECRET = process.env.JWT_SECRET || "novapay-dev-secret-2026"
 const TOKEN_EXPIRY = "7d"
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  console.warn("⚠️ JWT_SECRET is not set — using insecure development fallback. Set JWT_SECRET before deploying to production!")
+}
+
 export type JwtPayload = {
   userId: string
   email: string

@@ -26,11 +26,13 @@ function applyTheme(id: string) {
 }
 
 export default function SettingsPage() {
-  const [theme, setTheme] = useState("deepwater")
+  const [theme, setTheme] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem("novapay_theme") || "deepwater" : "deepwater"
+  )
 
   useEffect(() => {
     const saved = localStorage.getItem("novapay_theme")
-    if (saved) { setTheme(saved); applyTheme(saved) }
+    if (saved) applyTheme(saved)
   }, [])
 
   function selectTheme(id: string) {

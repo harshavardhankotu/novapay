@@ -134,7 +134,7 @@ model Account {
   currency      String      @default("INR")
   accountNumber String      @unique
   ifsc          String
-  upiHandle     String?
+  upiHandle     String?   @unique
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt

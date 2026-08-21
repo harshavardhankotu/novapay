@@ -34,22 +34,28 @@ export default function AdminPage() {
   const [data, setData] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [reloadTick, setReloadTick] = useState(0)
 
-  const load = () => {
-    setLoading(true)
-    setError("")
+  useEffect(() => {
+    let alive = true
     fetch("/api/admin/analytics")
       .then(async (r) => {
+        if (!alive) return
         if (r.status === 403) throw new Error("Admin access required. Log in with an admin account.")
         if (!r.ok) throw new Error("Failed to load analytics")
         return r.json()
       })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
-  }
+      .then((d) => { if (alive && d) setData(d) })
+      .catch((e) => { if (alive) setError(e.message) })
+      .finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [reloadTick])
 
-  useEffect(load, [])
+  const load = () => {
+    setError("")
+    setLoading(true)
+    setReloadTick((t) => t + 1)
+  }
 
   if (loading) return (
     <div className="max-w-6xl mx-auto py-20 text-center text-[#8ea6b6]">
