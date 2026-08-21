@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Camera, FileText, Shield, Check, ChevronRight, AlertCircle, Loader2 } from "lucide-react"
+import { Camera, FileText, Shield, Check, ChevronRight, AlertCircle, Loader2, Ship } from "lucide-react"
+import { APP_NAME } from "@/lib/constants"
 
 const steps = [
   { icon: FileText, title: "Aadhaar Verification", desc: "Link via DigiLocker", key: "aadhaar" },
@@ -50,17 +51,26 @@ export default function KycPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-5 bg-gradient-to-br from-[#f8f9fc] to-white dark:from-[#0a0a14] dark:to-[#15152a]">
-      <div className="w-full max-w-md animate-slide-up">
+    <div className="min-h-screen flex items-center justify-center p-5 bg-[#071a26] relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_-20%,rgba(232,163,61,0.12)_0%,transparent_60%),radial-gradient(ellipse_40%_30%_at_100%_100%,rgba(45,212,191,0.06)_0%,transparent_60%)]" />
+      {Array.from({ length: 20 }).map((_, i) => (
+        <div key={i} className="star" style={{
+          left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
+          width: `${Math.random() * 2 + 1}px`, height: `${Math.random() * 2 + 1}px`,
+          opacity: Math.random() * 0.5 + 0.2,
+          animationDelay: `${Math.random() * 5}s`, animationDuration: `${Math.random() * 3 + 2}s`,
+        }} />
+      ))}
+      <div className="relative z-10 w-full max-w-md animate-slide-up">
         <div className="text-center mb-8">
-          <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto shadow-lg shadow-[#5046e5]/20">
-            <FileText className="h-6 w-6 text-white" />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#e8a33d] to-[#2dd4bf] flex items-center justify-center mx-auto shadow-lg shadow-[#e8a33d]/30">
+            <Ship className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mt-4">Complete Your KYC</h1>
-          <p className="text-sm text-[#636e72] mt-1">RBI requires full KYC. We make it fast.</p>
+          <h1 className="text-2xl font-bold mt-4 text-white">Complete Your KYC</h1>
+          <p className="text-sm text-[#8ea6b6] mt-1">RBI requires full KYC. We make it fast.</p>
         </div>
 
-        <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-6 shadow-sm space-y-5">
+        <div className="bg-[#0e2633] rounded-2xl border border-[#1e3d4d] p-6 shadow-sm space-y-5">
           <div className="space-y-3">
             {steps.map((step) => {
               const Icon = step.icon
@@ -70,40 +80,40 @@ export default function KycPage() {
 
               return (
                 <div key={step.title} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
-                  isDone ? "border-[#00b894] bg-[#00b894]/5" :
-                  isCurrent ? "border-[#5046e5] bg-[#5046e5]/5" :
-                  "border-[#e8eaed] dark:border-[#2a2a45] opacity-50"
+                  isDone ? "border-[#4ade80] bg-[#4ade80]/5" :
+                  isCurrent ? "border-[#e8a33d] bg-[#e8a33d]/5" :
+                  "border-[#1e3d4d] opacity-50"
                 }`}>
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    isDone ? "bg-[#00b894] text-white" :
-                    isCurrent ? "bg-[#5046e5] text-white" :
-                    "bg-[#f5f6fa] dark:bg-[#1a1a30] text-[#636e72]"
+                    isDone ? "bg-[#4ade80] text-[#071a26]" :
+                    isCurrent ? "bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] text-white" :
+                    "bg-[#0e2633] text-[#8ea6b6]"
                   }`}>
                     {isDone ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{step.title}</p>
-                    <p className="text-xs text-[#636e72]">{step.desc}</p>
+                    <p className="font-medium text-sm text-white">{step.title}</p>
+                    <p className="text-xs text-[#8ea6b6]">{step.desc}</p>
                   </div>
                   {isDone && <Badge variant="success" className="text-[10px]">Done</Badge>}
-                  {isLocked && <ChevronRight className="h-4 w-4 text-[#636e72]" />}
+                  {isLocked && <ChevronRight className="h-4 w-4 text-[#8ea6b6]" />}
                 </div>
               )
             })}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-[#e8eaed] dark:border-[#2a2a45]">
+          <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-[#1e3d4d]">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Aadhaar Number</label>
-              <input value={aadhaar} onChange={(e) => setAadhaar(e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="XXXX XXXX XXXX" maxLength={14} />
+              <label className="text-sm font-medium mb-1.5 block text-white">Aadhaar Number</label>
+              <input value={aadhaar} onChange={(e) => setAadhaar(e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#1e3d4d] bg-[#0e2633] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]/50 placeholder:text-[#8ea6b6]" placeholder="XXXX XXXX XXXX" maxLength={14} />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">PAN Number</label>
-              <input value={pan} onChange={(e) => setPan(e.target.value.toUpperCase())} className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5] placeholder:text-[#636e72]" placeholder="ABCDE1234F" maxLength={10} />
+              <label className="text-sm font-medium mb-1.5 block text-white">PAN Number</label>
+              <input value={pan} onChange={(e) => setPan(e.target.value.toUpperCase())} className="w-full h-11 px-4 rounded-xl border border-[#1e3d4d] bg-[#0e2633] text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]/50 placeholder:text-[#8ea6b6]" placeholder="ABCDE1234F" maxLength={10} />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#e17055]/5 border border-[#e17055]/20 text-sm text-[#e17055]">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-[#f87171]/10 border border-[#f87171]/20 text-sm text-[#f87171]">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>

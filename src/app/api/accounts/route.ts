@@ -29,9 +29,9 @@ export async function POST(request: Request) {
       userId: payload.userId,
       type: type || "SAVINGS",
       currency: currency || "INR",
-      accountNumber: `REV${currency || "INR"}${Date.now().toString().slice(-8)}`,
-      ifsc: "REVU0000001",
-      upiHandle: `${payload.email.split("@")[0]}${(currency || "INR").toLowerCase()}@revolut`,
+      accountNumber: `NOVA${currency || "INR"}${Date.now().toString().slice(-8)}`,
+      ifsc: "NOVA0000001",
+      upiHandle: `${payload.email.split("@")[0]}${(currency || "INR").toLowerCase()}@novapay`,
     },
   })
 

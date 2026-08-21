@@ -34,70 +34,70 @@ export default function InternationalTransferPage() {
 
   return (
     <div className="animate-fade-in space-y-6 max-w-lg">
-      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#636e72] hover:text-[#1a1a2e] dark:hover:text-white">
+      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#8ea6b6] hover:text-white dark:hover:text-white">
         <ArrowLeft className="h-4 w-4" /> Back to Transfers
       </button>
 
       <div>
         <h1 className="text-2xl font-bold">International Transfer</h1>
-        <p className="text-sm text-[#636e72] mt-0.5">Send money abroad with zero markup</p>
+        <p className="text-sm text-[#8ea6b6] mt-0.5">Send money abroad with zero markup</p>
       </div>
 
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-5 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-[#0e2633] rounded-2xl border border-[#f3efe6] dark:border-[#1e3d4d] p-5 shadow-sm space-y-4">
         <div>
           <label className="text-sm font-medium mb-1.5 block">You Send</label>
           <div className="flex gap-2">
             <div className="flex-1 relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#636e72] font-medium">₹</span>
-              <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full h-11 pl-8 pr-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5]" placeholder="0.00" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8ea6b6] font-medium">₹</span>
+              <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full h-11 pl-8 pr-4 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]" placeholder="0.00" />
             </div>
-            <div className="w-20 h-11 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] flex items-center justify-center text-sm font-medium bg-[#f8f9fc] dark:bg-[#1a1a30]">INR</div>
+            <div className="w-20 h-11 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] flex items-center justify-center text-sm font-medium bg-[#f3efe6] dark:bg-[#0e2633]">INR</div>
           </div>
         </div>
 
         <div className="flex justify-center">
-          <div className="h-8 w-8 rounded-full bg-[#5046e5]/10 flex items-center justify-center">
-            <ArrowRight className="h-4 w-4 text-[#5046e5]" />
+          <div className="h-8 w-8 rounded-full bg-[#e8a33d]/10 flex items-center justify-center">
+            <ArrowRight className="h-4 w-4 text-[#e8a33d]" />
           </div>
         </div>
 
         <div>
           <label className="text-sm font-medium mb-1.5 block">Recipient Gets</label>
           <div className="flex gap-2">
-            <div className="flex-1 h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] flex items-center text-sm font-medium bg-[#f8f9fc] dark:bg-[#1a1a30]">
+            <div className="flex-1 h-11 px-4 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] flex items-center text-sm font-medium bg-[#f3efe6] dark:bg-[#0e2633]">
               {convertedAmount > 0 ? `${selected?.flag || ""} ${convertedAmount.toFixed(2)}` : "0.00"}
             </div>
-            <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)} className="w-24 h-11 px-3 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-white dark:bg-[#15152a] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30">
+            <select value={toCurrency} onChange={(e) => setToCurrency(e.target.value)} className="w-24 h-11 px-3 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] bg-white dark:bg-[#0e2633] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30">
               {currencies.map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
             </select>
           </div>
         </div>
 
-        <div className="rounded-xl bg-[#00b894]/5 border border-[#00b894]/20 p-4 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-[#636e72]">Exchange Rate</span><span className="font-medium">1 INR = {(1 / (selected?.rate || 1)).toFixed(4)} {toCurrency}</span></div>
-          <div className="flex justify-between"><span className="text-[#636e72]">Markup</span><span className="text-[#00b894] font-medium">0% • Interbank</span></div>
-          <div className="flex justify-between"><span className="text-[#636e72]">Delivery</span><span className="font-medium">1-2 business days</span></div>
+        <div className="rounded-xl bg-[#4ade80]/5 border border-[#4ade80]/20 p-4 space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-[#8ea6b6]">Exchange Rate</span><span className="font-medium">1 INR = {(1 / (selected?.rate || 1)).toFixed(4)} {toCurrency}</span></div>
+          <div className="flex justify-between"><span className="text-[#8ea6b6]">Markup</span><span className="text-[#4ade80] font-medium">0% • Interbank</span></div>
+          <div className="flex justify-between"><span className="text-[#8ea6b6]">Delivery</span><span className="font-medium">1-2 business days</span></div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-5 shadow-sm">
+      <div className="bg-white dark:bg-[#0e2633] rounded-2xl border border-[#f3efe6] dark:border-[#1e3d4d] p-5 shadow-sm">
         <h2 className="font-semibold mb-3">Recipient Details</h2>
         <div className="space-y-3">
-          <div><label className="text-sm font-medium mb-1.5 block">Full Name</label><input className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5]" placeholder="As on bank account" /></div>
-          <div><label className="text-sm font-medium mb-1.5 block">Account Number / IBAN</label><input className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5]" placeholder="Enter account number" /></div>
-          <div><label className="text-sm font-medium mb-1.5 block">{toCurrency === "USD" ? "Routing Number" : toCurrency === "EUR" ? "BIC/SWIFT" : "Sort Code"}</label><input className="w-full h-11 px-4 rounded-xl border border-[#e8eaed] dark:border-[#2a2a45] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#5046e5]/30 focus:border-[#5046e5]" placeholder="Enter code" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Full Name</label><input className="w-full h-11 px-4 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]" placeholder="As on bank account" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Account Number / IBAN</label><input className="w-full h-11 px-4 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]" placeholder="Enter account number" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">{toCurrency === "USD" ? "Routing Number" : toCurrency === "EUR" ? "BIC/SWIFT" : "Sort Code"}</label><input className="w-full h-11 px-4 rounded-xl border border-[#f3efe6] dark:border-[#1e3d4d] bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-[#e8a33d]/30 focus:border-[#e8a33d]" placeholder="Enter code" /></div>
         </div>
       </div>
 
-      <div className="rounded-xl bg-[#f8f9fc] dark:bg-[#1a1a30] p-4 flex items-start gap-3 text-sm">
-        <Banknote className="h-5 w-5 text-[#00b894] shrink-0 mt-0.5" />
+      <div className="rounded-xl bg-[#f3efe6] dark:bg-[#0e2633] p-4 flex items-start gap-3 text-sm">
+        <Banknote className="h-5 w-5 text-[#4ade80] shrink-0 mt-0.5" />
         <div>
           <p className="font-medium">You save compared to banks</p>
-          <p className="text-xs text-[#636e72]">Indian banks charge 3-5% on international transfers. You pay 0%.</p>
+          <p className="text-xs text-[#8ea6b6]">Indian banks charge 3-5% on international transfers. You pay 0%.</p>
         </div>
       </div>
 
-      {error && <div className="flex items-center gap-2 p-3 rounded-xl bg-[#e17055]/5 border border-[#e17055]/20 text-sm text-[#e17055]"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
+      {error && <div className="flex items-center gap-2 p-3 rounded-xl bg-[#ff8a70]/5 border border-[#ff8a70]/20 text-sm text-[#ff8a70]"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
 
       <Button className="w-full" size="lg" onClick={handleSubmit} disabled={loading}>
         {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</> : `Send ${convertedAmount > 0 ? `${convertedAmount.toFixed(2)} ${toCurrency}` : "International Transfer"}`}

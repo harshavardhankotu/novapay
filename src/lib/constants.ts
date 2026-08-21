@@ -1,5 +1,5 @@
-export const APP_NAME = "Revolut India"
-export const APP_TAGLINE = "Banking Without Borders"
+export const APP_NAME = "NovaPay"
+export const APP_TAGLINE = "Finance Beyond Horizons"
 
 export const CURRENCIES = [
   { code: "INR", name: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },

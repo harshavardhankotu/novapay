@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 enum KycLevel {
@@ -45,6 +45,7 @@ enum CardStatus {
 enum TransactionType {
   CREDIT
   DEBIT
+  EXCHANGE
 }
 
 enum TransactionStatus {
@@ -81,13 +82,46 @@ model User {
   updatedAt DateTime  @updatedAt
 
   accounts Account[]
-  beneficiaries Beneficiary[]
-  budgets      Budget[]
-  familiesParent FamilyParent[] @relation("FamilyParentRelation")
-  familiesChild  FamilyParent[] @relation("FamilyChildRelation")
-  rewards        Reward[]
-  kycDocuments KycDocument[]
-  auditLogs    AuditLog[]
+  beneficiaries    Beneficiary[]
+  budgets          Budget[]
+  familiesParent   FamilyParent[] @relation("FamilyParentRelation")
+  familiesChild    FamilyParent[] @relation("FamilyChildRelation")
+  rewards          Reward[]
+  kycDocuments     KycDocument[]
+  auditLogs        AuditLog[]
+  externalAccounts ExternalAccount[]
+  receivingAccounts ReceivingAccount[]
+  disputeTickets   DisputeTicket[]
+  esimPackages     EsimPackage[]
+  smartPockets     SmartPocket[]
+  kidsAccounts     KidsAccount[]
+  lrsTransactions  LRSTransaction[]
+  rewardRedemptions RewardRedemption[]
+  cryptoHoldings   CryptoHolding[]
+  digitalGold      DigitalGold?
+  roundupConfig    RoundupConfig?
+  rupayCreditLine  RuPayCreditLine?
+  fixedDeposits        FixedDeposit[]
+  recurringDeposits    RecurringDeposit[]
+  loans                Loan[]
+  creditScores         CreditScore[]
+  mutualFunds          MutualFundInvestment[]
+  insurancePolicies    InsurancePolicy[]
+  billPayments         BillPayment[]
+  billers              Biller[]
+  paymentMandates      PaymentMandate[]
+  nreAccounts          NreNroAccount[]
+  referralsMade        Referral[] @relation("Referrer")
+  referralsReceived    Referral[] @relation("Referee")
+  expenseSplits        ExpenseSplit[]
+  supportTickets       SupportTicket[]
+  notifications        Notification[]
+  sessions             Session[]
+  trustedDevices       TrustedDevice[]
+  twoFactorAuth        TwoFactorAuth?
+  savedCards           SavedCard[]
+  offers               Offer[]
+  upiIds               UpiId[]
 }
 
 model Account {
@@ -106,8 +140,13 @@ model Account {
   user              User       @relation(fields: [userId], references: [id])
   cards             Card[]
   transactions      Transaction[]
-  outgoingTransfers Transfer[] @relation("FromAccount")
-  incomingTransfers Transfer[] @relation("ToAccount")
+  outgoingTransfers   Transfer[] @relation("FromAccount")
+  incomingTransfers   Transfer[] @relation("ToAccount")
+  fixedDeposits       FixedDeposit[]
+  recurringDeposits   RecurringDeposit[]
+  loans               Loan[]
+  paymentMandates     PaymentMandate[]
+  upiIds              UpiId[]
 }
 
 model Card {
@@ -237,4 +276,554 @@ model AuditLog {
   timestamp DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+}
+
+enum AccountProvider {
+  HDFC
+  ICICI
+  SBI
+  AXIS
+  KOTAK
+  YESBANK
+}
+
+model ExternalAccount {
+  id        String          @id @default(cuid())
+  userId    String
+  bank      AccountProvider
+  accountNo String
+  balance   Float           @default(0)
+  type      String          @default("Savings")
+  status    String          @default("CONNECTED")
+  icon      String          @default("🏦")
+  createdAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ReceivingAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  currency      String
+  country       String
+  routingNumber String?
+  accountNumber String
+  bankName      String
+  type          String
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model DisputeTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  merchant  String
+  amount    Float
+  reason    String
+  status    String   @default("UNDER_REVIEW")
+  npciRef   String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model EsimPackage {
+  id          String   @id @default(cuid())
+  userId      String
+  region      String
+  data        String
+  validity    String
+  price       String
+  isPurchased Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model SmartPocket {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  target    Float
+  current   Float    @default(0)
+  category  String   @default("savings")
+  color     String   @default("#10B981")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model KidsAccount {
+  id              String   @id @default(cuid())
+  parentId        String
+  name            String
+  age             Int
+  cardStatus      String   @default("ACTIVE")
+  balance         Float    @default(0)
+  weeklyAllowance Float    @default(500)
+  isOnlineBlocked Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  parent User @relation(fields: [parentId], references: [id])
+}
+
+model LRSTransaction {
+  id              String   @id @default(cuid())
+  userId          String
+  amountUsd       Float
+  amountInr       Float
+  tcsAmount       Float    @default(0)
+  purpose         String
+  beneficiaryName String
+  status          String   @default("PENDING")
+  formA2Signed    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RewardRedemption {
+  id         String   @id @default(cuid())
+  userId     String
+  rewardId   String
+  title      String
+  pointsCost Float
+  status     String   @default("REDEEMED")
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model CryptoHolding {
+  id         String @id @default(cuid())
+  userId     String
+  code       String
+  name       String
+  holdings   Float
+  priceInr   Float
+  change24h  Float  @default(0)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model DigitalGold {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  grams     Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RoundupConfig {
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  enabled    Boolean @default(true)
+  multiplier Int     @default(1)
+  savedTotal Float   @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RuPayCreditLine {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  totalLimit     Float    @default(150000)
+  usedLimit      Float    @default(0)
+  dueDate        DateTime
+  interestFreeDays Int    @default(45)
+  upiEnabled     Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum FdType {
+  CUMULATIVE
+  NON_CUMULATIVE
+  TAX_SAVER
+}
+
+enum LoanType {
+  PERSONAL
+  HOME
+  AUTO
+  EDUCATION
+  BUSINESS
+}
+
+enum LoanStatus {
+  ACTIVE
+  CLOSED
+  DEFAULTED
+}
+
+enum InsuranceType {
+  HEALTH
+  LIFE
+  TRAVEL
+  GADGET
+}
+
+enum BillerCategory {
+  ELECTRICITY
+  WATER
+  GAS
+  MOBILE
+  DTH
+  BROADBAND
+  CREDIT_CARD
+  INSURANCE
+  FASTAG
+  LOAN
+  MUNICIPAL_TAX
+  EDUCATION
+}
+
+enum MandateFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  EMAIL
+  WHATSAPP
+}
+
+enum UpsellStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+}
+
+model FixedDeposit {
+  id            String   @id @default(cuid())
+  userId        String
+  accountId     String
+  fdType        FdType   @default(CUMULATIVE)
+  amount        Float
+  interestRate  Float
+  tenureMonths  Int
+  maturityDate  DateTime
+  maturityAmount Float
+  nominee       String?
+  autoRenew     Boolean  @default(false)
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model RecurringDeposit {
+  id               String   @id @default(cuid())
+  userId           String
+  accountId        String
+  monthlyAmount    Float
+  interestRate     Float
+  tenureMonths     Int
+  maturityDate     DateTime
+  totalDeposited   Float    @default(0)
+  missedPayments   Int      @default(0)
+  nominee          String?
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model Loan {
+  id              String     @id @default(cuid())
+  userId          String
+  accountId       String
+  type            LoanType
+  principal       Float
+  interestRate    Float
+  tenureMonths    Int
+  emiAmount       Float
+  totalPaid       Float      @default(0)
+  outstanding     Float
+  disbursedAt     DateTime?
+  dueDate         DateTime?
+  status          LoanStatus @default(ACTIVE)
+  foreclosureFee  Float      @default(0)
+  createdAt       DateTime   @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model CreditScore {
+  id         String   @id @default(cuid())
+  userId     String
+  bureau     String   @default("CIBIL")
+  score      Int
+  scoreRange String   @default("300-900")
+  reportDate DateTime @default(now())
+  lastUpdated DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, bureau])
+}
+
+model MutualFundInvestment {
+  id             String   @id @default(cuid())
+  userId         String
+  fundName       String
+  fundCategory   String
+  sipAmount      Float?
+  lumpsumAmount  Float?
+  units          Float
+  nav            Float
+  investedAmount Float
+  currentValue   Float
+  sipFrequency   String?
+  sipDay         Int?
+  startDate      DateTime?
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model InsurancePolicy {
+  id            String         @id @default(cuid())
+  userId        String
+  type          InsuranceType
+  provider      String
+  policyNumber  String         @unique
+  sumAssured    Float
+  premium       Float
+  premiumFrequency String      @default("YEARLY")
+  startDate     DateTime
+  endDate       DateTime
+  nominee       String?
+  status        String         @default("ACTIVE")
+  createdAt     DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Biller {
+  id             String         @id @default(cuid())
+  userId         String
+  category       BillerCategory
+  name           String
+  consumerNo     String
+  nickname       String?
+  autoPay        Boolean        @default(false)
+  autoPayLimit   Float?
+  createdAt      DateTime       @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  billPayments BillPayment[]
+}
+
+model BillPayment {
+  id         String   @id @default(cuid())
+  billerId   String
+  userId     String
+  amount     Float
+  reference  String   @unique
+  status     String   @default("PENDING")
+  paidAt     DateTime @default(now())
+
+  biller Biller @relation(fields: [billerId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model PaymentMandate {
+  id            String            @id @default(cuid())
+  userId        String
+  name          String
+  amount        Float
+  frequency     MandateFrequency
+  customCron    String?
+  nextRun       DateTime
+  lastRun       DateTime?
+  accountId     String
+  status        String            @default("ACTIVE")
+  maxDebits     Int?
+  debitCount    Int               @default(0)
+  umrn          String?           @unique
+  createdAt     DateTime          @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model NreNroAccount {
+  id            String      @id @default(cuid())
+  userId        String
+  type          String
+  accountNumber String      @unique
+  ifsc          String
+  balance       Float       @default(0)
+  currency      String      @default("INR")
+  repatriable   Boolean     @default(true)
+  linkedFcnr    String?
+  status        String      @default("ACTIVE")
+  createdAt     DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Referral {
+  id          String             @id @default(cuid())
+  referrerId  String
+  refereeId   String
+  code        String
+  rewardPoints Float             @default(500)
+  status      UpsellStatus       @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referee  User @relation("Referee", fields: [refereeId], references: [id])
+
+  @@unique([referrerId, refereeId])
+}
+
+model ExpenseSplit {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  totalAmount Float
+  splitWith   String
+  dueDate     DateTime
+  settled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model SupportTicket {
+  id        String          @id @default(cuid())
+  userId    String
+  subject   String
+  category  String
+  priority  String          @default("MEDIUM")
+  status    String          @default("OPEN")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id])
+  messages TicketMessage[]
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  senderId   String
+  message    String
+  attachment String?
+  createdAt  DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id])
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String
+  channel   NotificationChannel @default(PUSH)
+  read      Boolean            @default(false)
+  createdAt DateTime           @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  device    String?
+  ip        String?
+  userAgent String?
+  lastUsed  DateTime @default(now())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model TrustedDevice {
+  id        String   @id @default(cuid())
+  userId    String
+  deviceId  String
+  name      String
+  isCurrent Boolean  @default(false)
+  lastUsed  DateTime @default(now())
+  addedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, deviceId])
+}
+
+model TwoFactorAuth {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  secret    String
+  method    String   @default("TOTP")
+  enabled   Boolean  @default(false)
+  backupCodes String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model SavedCard {
+  id          String   @id @default(cuid())
+  userId      String
+  cardNumber  String
+  cardNetwork CardNetwork
+  lastFour    String
+  expiryMonth Int
+  expiryYear  Int
+  cardholder  String
+  nickname    String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Offer {
+  id          String       @id @default(cuid())
+  userId      String?
+  title       String
+  description String
+  category    String
+  discount    String
+  validTill   DateTime
+  terms       String?
+  code        String?
+  status      UpsellStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model UpiId {
+  id        String   @id @default(cuid())
+  userId    String
+  accountId String
+  upiId     String   @unique
+  isPrimary Boolean  @default(false)
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
 }

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken"
 
-const JWT_SECRET = process.env.JWT_SECRET || "revolut-india-dev-secret-2026"
+const JWT_SECRET = process.env.JWT_SECRET || "novapay-dev-secret-2026"
 const TOKEN_EXPIRY = "7d"
 
 export type JwtPayload = {

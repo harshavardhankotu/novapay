@@ -14,13 +14,13 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Revolut India - Banking Without Borders",
+  title: "NovaPay - Finance Beyond Horizons",
   description:
     "India's most innovative digital banking platform. UPI, multi-currency accounts, budgeting, and more.",
 }
 
 export const viewport: Viewport = {
-  themeColor: "#5046e5",
+  themeColor: "#071a26",
 }
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} dark`}>
       <body className="min-h-screen antialiased scroll-smooth">
         <Providers>{children}</Providers>
       </body>

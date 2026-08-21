@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import { useUserStore } from "@/store/user-store"
 import { usePathname, useRouter } from "next/navigation"
+import { Ship } from "lucide-react"
+import { APP_NAME } from "@/lib/constants"
 
 const publicPaths = ["/login", "/signup", "/forgot-password", "/"]
 
@@ -23,14 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (isAuthLoading && !publicPaths.includes(pathname)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9fc] dark:bg-[#0a0a14]">
+      <div className="min-h-screen flex items-center justify-center bg-[#071a26]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
-            <span className="text-white font-bold">R</span>
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#e8a33d] to-[#2dd4bf] flex items-center justify-center shadow-lg shadow-[#e8a33d]/30 animate-float">
+            <Ship className="h-5 w-5 text-white" />
           </div>
-          <div className="h-1.5 w-24 rounded-full bg-[#e8eaed] dark:bg-[#2a2a45] overflow-hidden">
-            <div className="h-full w-1/3 rounded-full bg-[#5046e5] animate-pulse" />
+          <div className="h-1.5 w-24 rounded-full bg-[#1e3d4d] overflow-hidden">
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-[#e8a33d] to-[#2dd4bf] animate-pulse" />
           </div>
+          <p className="text-xs text-[#8ea6b6]">{APP_NAME} loading...</p>
         </div>
       </div>
     )

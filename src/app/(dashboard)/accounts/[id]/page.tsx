@@ -1,83 +1,102 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatDate } from "@/lib/utils"
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Copy, ExternalLink } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
+import * as React from "react"
+import { Plus, ArrowUpRight, ArrowDownRight, Copy, Building2, Wallet, PiggyBank, type LucideIcon } from "lucide-react"
 
-type AccountDetail = {
-  id: string; type: string; balance: number; currency: string
-  accountNumber: string; ifsc: string; upiHandle: string | null; isActive: boolean
-  transactions: { id: string; type: string; amount: number; description: string; timestamp: string; status: string }[]
-}
+const accounts = [
+  { id: "1", name: "INR Savings", type: "SAVINGS", balance: 1248500, currency: "INR", accNo: "NOVAINR0001", ifsc: "NOVA0000001", upi: "rahul@novapay", isActive: true, color: "#e8a33d" },
+  { id: "2", name: "USD Wallet", type: "CURRENT", balance: 2500, currency: "USD", accNo: "NOVAUSD0001", ifsc: "NOVA0000001", upi: null, isActive: true, color: "#2dd4bf" },
+  { id: "3", name: "EUR Wallet", type: "CURRENT", balance: 1200, currency: "EUR", accNo: "NOVAEUR0001", ifsc: "NOVA0000001", upi: null, isActive: true, color: "#fbbf24" },
+]
 
-export default function AccountDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [account, setAccount] = useState<AccountDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+const typeIcons: Record<string, LucideIcon> = { SAVINGS: PiggyBank, CURRENT: Wallet }
 
-  useEffect(() => {
-    fetch(`/api/accounts`).then(r => r.json()).then((accounts: AccountDetail[]) => {
-      const acc = accounts.find((a) => a.id === params.id)
-      if (acc) {
-        setAccount(acc)
-        if (acc.transactions) setAccount({ ...acc, transactions: acc.transactions })
-      }
-      setLoading(false)
-    })
-  }, [params.id])
+export default function AccountsPage() {
+  const [copiedId, setCopiedId] = React.useState<string | null>(null)
 
-  if (loading) return <div className="animate-pulse p-6 space-y-4"><div className="h-8 w-48 rounded-xl bg-[#e8eaed] dark:bg-[#2a2a45]" /><div className="h-32 rounded-2xl bg-[#e8eaed] dark:bg-[#2a2a45]" /></div>
-  if (!account) return <div className="p-6 text-center text-[#636e72]">Account not found</div>
+  const handleCopy = (id: string, text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   return (
-    <div className="animate-fade-in space-y-6 max-w-3xl">
-      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#636e72] hover:text-[#1a1a2e] dark:hover:text-white transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
-
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-6 shadow-sm">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-sm text-[#636e72]">{account.type} Account</p>
-            <h1 className="text-3xl font-bold mt-1">{formatCurrency(account.balance, account.currency)}</h1>
-          </div>
-          <Badge variant={account.isActive ? "success" : "secondary"}>{account.isActive ? "Active" : "Inactive"}</Badge>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Accounts</h1>
+          <p className="text-sm text-[#8ea6b6] mt-0.5">Manage your accounts and wallets</p>
         </div>
-        <div className="grid grid-cols-2 gap-3 bg-[#f8f9fc] dark:bg-[#1a1a30] rounded-xl p-4 text-sm">
-          <div><span className="text-[#636e72]">Account No.</span><p className="font-mono font-medium">{account.accountNumber}</p></div>
-          <div><span className="text-[#636e72]">IFSC</span><p className="font-mono font-medium">{account.ifsc}</p></div>
-          {account.upiHandle && <div><span className="text-[#636e72]">UPI Handle</span><p className="font-mono font-medium">{account.upiHandle}</p></div>}
-        </div>
-        <div className="flex gap-2 mt-4">
-          <Button variant="outline" size="sm" className="flex-1 gap-1.5"><ArrowUpRight className="h-4 w-4" /> Send</Button>
-          <Button variant="outline" size="sm" className="flex-1 gap-1.5"><ArrowDownRight className="h-4 w-4" /> Receive</Button>
-        </div>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Open Account
+        </Button>
       </div>
 
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-5 shadow-sm">
-        <h2 className="font-semibold mb-3">Recent Transactions</h2>
-        <div className="space-y-1">
-          {account.transactions?.length > 0 ? account.transactions.map((tx: any) => (
-            <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-[#f8f9fc] dark:hover:bg-[#1a1a30]">
-              <div className="flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${tx.type === "CREDIT" ? "bg-[#00b894]/10" : "bg-[#e17055]/10"}`}>
-                  {tx.type === "CREDIT" ? <ArrowDownRight className="h-4 w-4 text-[#00b894]" /> : <ArrowUpRight className="h-4 w-4 text-[#e17055]" />}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {accounts.map((acc) => {
+          const TypeIcon = typeIcons[acc.type]
+          return (
+            <div key={acc.id} className="bg-white dark:bg-[#0e2633] rounded-2xl border border-[#f3efe6] dark:border-[#1e3d4d] p-6 shadow-sm hover:shadow-md transition-all animate-slide-up group">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${acc.color}15` }}>
+                    <TypeIcon className="h-5 w-5" style={{ color: acc.color }} />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{acc.name}</p>
+                    <p className="text-xs text-[#8ea6b6]">{acc.type} Account</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{tx.description}</p>
-                  <p className="text-xs text-[#636e72]">{formatDate(tx.timestamp, "relative")}</p>
-                </div>
+                <Badge variant={acc.isActive ? "success" : "secondary"}>{acc.isActive ? "Active" : "Inactive"}</Badge>
               </div>
-              <p className={`text-sm font-semibold ${tx.type === "CREDIT" ? "text-[#00b894]" : ""}`}>
-                {tx.type === "CREDIT" ? "+" : "-"}{formatCurrency(tx.amount, account.currency)}
-              </p>
+
+              <p className="text-3xl font-bold tracking-tight mb-4">{formatCurrency(acc.balance, acc.currency)}</p>
+
+              <div className="space-y-2.5 text-sm bg-[#f3efe6] dark:bg-[#0e2633] rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#8ea6b6]">Account No.</span>
+                  <span className="font-mono text-xs flex items-center gap-1.5">
+                    {acc.accNo}
+                    <button onClick={() => handleCopy(`acc-${acc.id}`, acc.accNo)} className="hover:opacity-70 transition-opacity">
+                      <Copy className={`h-3.5 w-3.5 ${copiedId === `acc-${acc.id}` ? "text-[#4ade80]" : "text-[#8ea6b6]"}`} />
+                    </button>
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#8ea6b6]">IFSC</span>
+                  <span className="font-mono text-xs">{acc.ifsc}</span>
+                </div>
+                {acc.upi && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#8ea6b6]">UPI</span>
+                    <span className="font-mono text-xs flex items-center gap-1.5">
+                      {acc.upi}
+                      <button onClick={() => handleCopy(`upi-${acc.id}`, acc.upi!)} className="hover:opacity-70 transition-opacity">
+                        <Copy className={`h-3.5 w-3.5 ${copiedId === `upi-${acc.id}` ? "text-[#4ade80]" : "text-[#8ea6b6]"}`} />
+                      </button>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#f3efe6] dark:border-[#1e3d4d]">
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5">
+                  <ArrowUpRight className="h-3.5 w-3.5" /> Send
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 gap-1.5">
+                  <ArrowDownRight className="h-3.5 w-3.5" /> Receive
+                </Button>
+                <Button variant="ghost" size="sm" className="px-2">
+                  <Building2 className="h-4 w-4 text-[#8ea6b6]" />
+                </Button>
+              </div>
             </div>
-          )) : <p className="text-sm text-[#636e72] text-center py-4">No transactions yet</p>}
-        </div>
+          )
+        })}
       </div>
     </div>
   )

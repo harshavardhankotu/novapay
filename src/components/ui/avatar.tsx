@@ -21,7 +21,7 @@ function Avatar({ className, src, alt, fallback, size = "md", ...props }: Avatar
       {src ? (
         <img src={src} alt={alt} className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[#6c5ce7] text-white font-medium">
+        <div className="flex h-full w-full items-center justify-center bg-[#e8a33d] text-[#1a1206] font-medium">
           {fallback?.slice(0, 2).toUpperCase()}
         </div>
       )}

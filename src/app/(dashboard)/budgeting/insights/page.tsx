@@ -6,27 +6,27 @@ import { ArrowLeft, Lightbulb, TrendingUp, TrendingDown, AlertTriangle, PiggyBan
 
 const insights = [
   {
-    icon: TrendingUp, color: "#e17055", title: "Spending is up 12% this month",
+    icon: TrendingUp, color: "#ff8a70", title: "Spending is up 12% this month",
     desc: "Your spending increased compared to last month. Dining out and shopping are the main drivers.",
     type: "danger" as const,
   },
   {
-    icon: PiggyBank, color: "#00b894", title: "You saved ₹5,200 this month",
+    icon: PiggyBank, color: "#2dd4bf", title: "You saved ₹5,200 this month",
     desc: "Great job staying within budget! Increase your monthly savings goal by 10%?",
     type: "success" as const,
   },
   {
-    icon: AlertTriangle, color: "#fdcb6e", title: "Entertainment budget nearly exhausted",
+    icon: AlertTriangle, color: "#fbbf24", title: "Entertainment budget nearly exhausted",
     desc: "You've used 96% of your entertainment budget. Only ₹200 remaining for the month.",
     type: "warning" as const,
   },
   {
-    icon: Target, color: "#5046e5", title: "Subscription audit available",
+    icon: Target, color: "#e8a33d", title: "Subscription audit available",
     desc: "You're paying for 4 streaming services. Potential savings of ₹1,200/month by consolidating.",
     type: "info" as const,
   },
   {
-    icon: Lightbulb, color: "#6c5ce7", title: "Weekend spending pattern detected",
+    icon: Lightbulb, color: "#e8a33d", title: "Weekend spending pattern detected",
     desc: "60% of your dining spend happens on weekends. Setting a weekend dining budget could save ₹3,000/month.",
     type: "info" as const,
   },
@@ -37,23 +37,23 @@ export default function BudgetInsightsPage() {
 
   return (
     <div className="animate-fade-in space-y-6 max-w-3xl">
-      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#636e72] hover:text-[#1a1a2e] dark:hover:text-white">
+      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-[#8ea6b6] hover:text-white dark:hover:text-white">
         <ArrowLeft className="h-4 w-4" /> Back to Budgeting
       </button>
 
       <div>
         <h1 className="text-2xl font-bold">AI Spending Insights</h1>
-        <p className="text-sm text-[#636e72] mt-0.5">Personalized recommendations powered by transaction analysis</p>
+        <p className="text-sm text-[#8ea6b6] mt-0.5">Personalized recommendations powered by transaction analysis</p>
       </div>
 
       <div className="space-y-3">
         {insights.map((i) => {
           const Icon = i.icon
           const typeStyles = {
-            danger: "border-[#e17055]/30 bg-[#e17055]/5",
-            success: "border-[#00b894]/30 bg-[#00b894]/5",
-            warning: "border-[#fdcb6e]/30 bg-[#fdcb6e]/5",
-            info: "border-[#5046e5]/20 bg-[#5046e5]/5",
+            danger: "border-[#ff8a70]/30 bg-[#ff8a70]/5",
+            success: "border-[#4ade80]/30 bg-[#4ade80]/5",
+            warning: "border-[#fbbf24]/30 bg-[#fbbf24]/5",
+            info: "border-[#e8a33d]/20 bg-[#e8a33d]/5",
           }
           return (
             <div key={i.title} className={`rounded-2xl border p-5 ${typeStyles[i.type]} animate-slide-up`}>
@@ -63,7 +63,7 @@ export default function BudgetInsightsPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">{i.title}</h3>
-                  <p className="text-sm text-[#636e72] mt-1">{i.desc}</p>
+                  <p className="text-sm text-[#8ea6b6] mt-1">{i.desc}</p>
                 </div>
               </div>
             </div>

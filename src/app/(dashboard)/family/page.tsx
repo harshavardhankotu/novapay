@@ -6,8 +6,8 @@ import { formatCurrency } from "@/lib/utils"
 import { Plus, Settings, Lock, Unlock, Clock, Users, Shield, SlidersHorizontal } from "lucide-react"
 
 const familyMembers = [
-  { id: "1", name: "Aarav Kumar", initials: "AK", dailyLimit: 5000, monthlyLimit: 50000, isActive: true, spent: 3250, color: "#5046e5" },
-  { id: "2", name: "Ananya Kumar", initials: "AN", dailyLimit: 3000, monthlyLimit: 30000, isActive: true, spent: 1500, color: "#e17055" },
+  { id: "1", name: "Aarav Kumar", initials: "AK", dailyLimit: 5000, monthlyLimit: 50000, isActive: true, spent: 3250, color: "#e8a33d" },
+  { id: "2", name: "Ananya Kumar", initials: "AN", dailyLimit: 3000, monthlyLimit: 30000, isActive: true, spent: 1500, color: "#ff8a70" },
 ]
 
 const recentActivity = [
@@ -22,7 +22,7 @@ export default function FamilyPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Family Banking</h1>
-          <p className="text-sm text-[#636e72] mt-0.5">Manage spending for your loved ones</p>
+          <p className="text-sm text-[#8ea6b6] mt-0.5">Manage spending for your loved ones</p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -32,7 +32,7 @@ export default function FamilyPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {familyMembers.map((m, i) => (
-          <div key={m.id} className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-5 shadow-sm animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
+          <div key={m.id} className="bg-white dark:bg-[#0e2633] rounded-2xl border border-[#f3efe6] dark:border-[#1e3d4d] p-5 shadow-sm animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: m.color }}>
@@ -49,30 +49,30 @@ export default function FamilyPage() {
                 </div>
               </div>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Settings className="h-4 w-4 text-[#636e72]" />
+                <Settings className="h-4 w-4 text-[#8ea6b6]" />
               </Button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#f8f9fc] dark:bg-[#1a1a30] rounded-xl p-3">
-                <p className="text-xs text-[#636e72]">Daily Limit</p>
+              <div className="bg-[#f3efe6] dark:bg-[#0e2633] rounded-xl p-3">
+                <p className="text-xs text-[#8ea6b6]">Daily Limit</p>
                 <p className="font-semibold mt-0.5">{formatCurrency(m.dailyLimit)}</p>
               </div>
-              <div className="bg-[#f8f9fc] dark:bg-[#1a1a30] rounded-xl p-3">
-                <p className="text-xs text-[#636e72]">Monthly Limit</p>
+              <div className="bg-[#f3efe6] dark:bg-[#0e2633] rounded-xl p-3">
+                <p className="text-xs text-[#8ea6b6]">Monthly Limit</p>
                 <p className="font-semibold mt-0.5">{formatCurrency(m.monthlyLimit)}</p>
               </div>
-              <div className="bg-[#f8f9fc] dark:bg-[#1a1a30] rounded-xl p-3">
-                <p className="text-xs text-[#636e72]">Spent Today</p>
+              <div className="bg-[#f3efe6] dark:bg-[#0e2633] rounded-xl p-3">
+                <p className="text-xs text-[#8ea6b6]">Spent Today</p>
                 <p className="font-semibold mt-0.5">{formatCurrency(m.spent)}</p>
               </div>
-              <div className="bg-[#f8f9fc] dark:bg-[#1a1a30] rounded-xl p-3">
-                <p className="text-xs text-[#636e72]">Remaining</p>
-                <p className="font-semibold mt-0.5 text-[#00b894]">{formatCurrency(m.dailyLimit - m.spent)}</p>
+              <div className="bg-[#f3efe6] dark:bg-[#0e2633] rounded-xl p-3">
+                <p className="text-xs text-[#8ea6b6]">Remaining</p>
+                <p className="font-semibold mt-0.5 text-[#4ade80]">{formatCurrency(m.dailyLimit - m.spent)}</p>
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-[#e8eaed] dark:border-[#2a2a45] flex gap-2">
+            <div className="mt-4 pt-4 border-t border-[#f3efe6] dark:border-[#1e3d4d] flex gap-2">
               <Button variant="outline" size="sm" className="flex-1 gap-1.5">
                 {m.isActive ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
                 {m.isActive ? "Freeze" : "Unfreeze"}
@@ -86,20 +86,20 @@ export default function FamilyPage() {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-[#15152a] rounded-2xl border border-[#e8eaed] dark:border-[#2a2a45] p-5 shadow-sm">
+      <div className="bg-white dark:bg-[#0e2633] rounded-2xl border border-[#f3efe6] dark:border-[#1e3d4d] p-5 shadow-sm">
         <h2 className="font-semibold mb-4">Recent Activity</h2>
         <div className="space-y-2">
           {recentActivity.map((a) => (
-            <div key={a.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-[#f8f9fc] dark:hover:bg-[#1a1a30] transition-colors">
+            <div key={a.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-[#f3efe6] dark:hover:bg-[#0e2633] transition-colors">
               <div className="flex items-center gap-3">
                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                  a.status === "active" ? "bg-[#5046e5]/10" : "bg-[#e17055]/10"
+                  a.status === "active" ? "bg-[#e8a33d]/10" : "bg-[#ff8a70]/10"
                 }`}>
-                  <Shield className={`h-4 w-4 ${a.status === "active" ? "text-[#5046e5]" : "text-[#e17055]"}`} />
+                  <Shield className={`h-4 w-4 ${a.status === "active" ? "text-[#e8a33d]" : "text-[#ff8a70]"}`} />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{a.name} • {a.action}</p>
-                  <p className="text-xs text-[#636e72]">{a.time}</p>
+                  <p className="text-xs text-[#8ea6b6]">{a.time}</p>
                 </div>
               </div>
               <div className="text-right">

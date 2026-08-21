@@ -42,9 +42,9 @@ export function maskUpiHandle(handle: string): string {
 }
 
 export function generateAccountNumber(): string {
-  return `REV${Math.random().toString(36).slice(2, 8).toUpperCase()}${Date.now().toString().slice(-6)}`
+  return `NOVA${Math.random().toString(36).slice(2, 8).toUpperCase()}${Date.now().toString().slice(-6)}`
 }
 
 export function generateUpiHandle(name: string): string {
-  return `${name.toLowerCase().replace(/\s+/g, "")}@revolut`
+  return `${name.toLowerCase().replace(/\s+/g, "")}@novapay`
 }

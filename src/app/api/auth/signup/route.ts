@@ -35,9 +35,9 @@ export async function POST(request: Request) {
             type: "SAVINGS",
             balance: 1000,
             currency: "INR",
-            accountNumber: `REVINR${Date.now().toString().slice(-8)}`,
-            ifsc: "REVU0000001",
-            upiHandle: `${email.split("@")[0]}@revolut`,
+            accountNumber: `NOVAINR${Date.now().toString().slice(-8)}`,
+            ifsc: "NOVA0000001",
+            upiHandle: `${email.split("@")[0]}@novapay`,
           },
         },
         rewards: {
