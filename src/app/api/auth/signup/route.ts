@@ -92,6 +92,38 @@ export async function POST(request: Request) {
     })
 
     await audit(user.id, "SIGNUP", `Account created for ${email}`)
+
+    // ── Referral completion: link referee → referrer, reward both sides ──
+    const refCode = typeof raw.referralCode === "string" ? raw.referralCode.trim().toUpperCase() : ""
+    if (refCode.startsWith("NOVA") && refCode.length > 4) {
+      try {
+        // Code format is NOVA + last-6-of-id (see /api/referrals)
+        const candidates = await prisma.user.findMany({
+          where: { id: { endsWith: refCode.slice(4).toLowerCase() }, NOT: { id: user.id } },
+          select: { id: true },
+          take: 2,
+        })
+        if (candidates.length === 1) {
+          const referrerId = candidates[0].id
+          await prisma.referral.create({
+            data: { referrerId, refereeId: user.id, code: refCode, rewardPoints: 500, status: "ACTIVE" },
+          })
+          // Referrer bonus (+500)
+          try {
+            await prisma.reward.update({ where: { userId: referrerId }, data: { points: { increment: 500 } } })
+          } catch {
+            await prisma.reward.create({ data: { userId: referrerId, points: 500, tier: "SILVER", cashback: 0 } })
+          }
+          // New user welcome bonus (+250)
+          try {
+            await prisma.reward.update({ where: { userId: user.id }, data: { points: { increment: 250 } } })
+          } catch {}
+        }
+      } catch {
+        // referral must never block signup
+      }
+    }
+
     setTokenCookie(response, token)
     return response
   } catch (error) {

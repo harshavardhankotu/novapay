@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError } from "@/lib/banking"
+import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError, updateBudgetSpent } from "@/lib/banking"
 
 export async function POST(request: Request) {
   const t = getTokenFromCookies(request); const p = verifyToken(t || "")
@@ -64,6 +64,7 @@ export async function POST(request: Request) {
     })
 
     const points = await awardSpendPoints(p.userId, amount)
+    await updateBudgetSpent(p.userId, "Bills", amount)
     await notify(p.userId, "Bill Payment Successful", `₹${amount.toLocaleString("en-IN")} paid to ${biller.nickname || biller.name}${points ? ` · +${points} NovaPoints` : ""}`)
     await audit(p.userId, "BILL_PAYMENT", `₹${amount} paid to ${biller.name} (${reference})`)
 

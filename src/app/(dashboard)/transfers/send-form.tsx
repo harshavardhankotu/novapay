@@ -7,11 +7,14 @@ import { useUserStore } from "@/store/user-store"
 
 type TxMethod = "neft" | "upi" | "international"
 
-const quickPicks = [
-  { name: "Priya Sharma", type: "BANK", detail: "HDFC Bank ****4521", recent: true },
-  { name: "Amit Singh", type: "UPI", detail: "amit@paytm", recent: true },
-  { name: "Mom & Dad", type: "UPI", detail: "family@novapay", recent: false },
-]
+interface Beneficiary {
+  id: string
+  name: string
+  type: string
+  accountNumber?: string | null
+  upiId?: string | null
+  isFavourite?: boolean
+}
 
 export function SendMoneyForm() {
   const { accounts, fetchMe } = useUserStore()
@@ -23,6 +26,7 @@ export function SendMoneyForm() {
   const [status, setStatus] = React.useState<"idle" | "loading" | "done" | "error">("idle")
   const [message, setMessage] = React.useState("")
   const [search, setSearch] = React.useState("")
+  const [beneficiaries, setBeneficiaries] = React.useState<Beneficiary[]>([])
 
   // Keep a stable idempotency key per "attempt": regenerated after each
   // successful/failed completion so retries of the SAME submission reuse it,
@@ -31,6 +35,20 @@ export function SendMoneyForm() {
 
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const effectiveFromId = fromAccountId || accounts[0]?.id || ""
+
+  React.useEffect(() => {
+    fetch("/api/beneficiaries")
+      .then((r) => r.json())
+      .then((d: Beneficiary[]) => setBeneficiaries(Array.isArray(d) ? d : []))
+      .catch(() => {})
+  }, [])
+
+  const filtered = beneficiaries.filter(
+    (b) =>
+      b.name.toLowerCase().includes(search.toLowerCase()) ||
+      (b.upiId || "").toLowerCase().includes(search.toLowerCase()) ||
+      (b.accountNumber || "").includes(search)
+  )
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -60,8 +78,6 @@ export function SendMoneyForm() {
       setMessage(err?.message || "Transfer failed")
     }
   }
-
-  const filtered = quickPicks.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
 
   return (
     <div className="space-y-4">
@@ -161,14 +177,22 @@ export function SendMoneyForm() {
           </div>
         </div>
         <div className="grid sm:grid-cols-3 gap-2">
-          {filtered.map((b) => (
-            <button key={b.name} onClick={() => setRecipient(b.detail.includes("@") ? b.detail : "")}
-              className="text-left p-3 rounded-xl border border-[#1e3d4d] hover:border-[#e8a33d]/40 transition-all group">
-              <p className="text-sm font-medium text-white truncate">{b.name}</p>
-              <p className="text-[11px] text-[#8ea6b6] mt-0.5 truncate">{b.detail}</p>
-            </button>
-          ))}
-          {filtered.length === 0 && <p className="text-xs text-[#8ea6b6] col-span-3 py-4 text-center">No matches</p>}
+          {filtered.map((b) => {
+            const detail = b.upiId || `${b.accountNumber?.slice(0, 4)}···${b.accountNumber?.slice(-4)}`
+            return (
+              <button key={b.id} onClick={() => setRecipient(b.upiId || b.accountNumber || "")}
+                className="text-left p-3 rounded-xl border border-[#1e3d4d] hover:border-[#e8a33d]/40 transition-all group">
+                <p className="text-sm font-medium text-white truncate flex items-center gap-1">
+                  {b.name}
+                  {b.isFavourite && <Star className="h-3 w-3 text-[#fbbf24] shrink-0" />}
+                </p>
+                <p className="text-[11px] text-[#8ea6b6] mt-0.5 truncate">{detail}</p>
+              </button>
+            )
+          })}
+          {filtered.length === 0 && (
+            <p className="text-xs text-[#8ea6b6] col-span-3 py-4 text-center">No saved recipients yet — enter details above to send.</p>
+          )}
         </div>
         <div className="mt-3 pt-3 border-t border-[#1e3d4d] flex items-center gap-2 text-[11px] text-[#8ea6b6]">
           <Clock className="h-3 w-3" /> New beneficiaries at real banks have a 30-min cooling period — simulated here without the wait.

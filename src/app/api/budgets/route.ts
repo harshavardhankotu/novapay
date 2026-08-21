@@ -8,9 +8,9 @@ export async function GET(request: Request) {
   const payload = verifyToken(token)
   if (!payload) return NextResponse.json({ error: "Invalid token" }, { status: 401 })
 
-  const currentMonth = new Date().toISOString().slice(0, 7)
   const budgets = await prisma.budget.findMany({
-    where: { userId: payload.userId, month: currentMonth },
+    where: { userId: payload.userId },
+    orderBy: { createdAt: "desc" },
   })
 
   return NextResponse.json(budgets)

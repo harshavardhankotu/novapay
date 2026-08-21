@@ -66,6 +66,77 @@ export async function awardSpendPoints(userId: string, spendAmount: number): Pro
   }
 }
 
+// ─── Budget tracking ─────────────────────────────────────────────────────────
+
+/**
+ * Keeps budget.spent in sync with categorized debits (PFM loop).
+ * Matches the transaction category against any monthly budget's category
+ * (case-insensitive) — month-agnostic so long-lived demo data keeps working.
+ */
+export async function updateBudgetSpent(userId: string, category: string | null | undefined, amount: number): Promise<void> {
+  if (!category) return
+  try {
+    const budgets = await prisma.budget.findMany({
+      where: { userId, period: "MONTHLY" },
+      select: { id: true, category: true },
+      orderBy: { createdAt: "desc" },
+    })
+    const match = budgets.find((b) => b.category.toLowerCase() === category.toLowerCase())
+    if (!match) return
+    await prisma.budget.update({ where: { id: match.id }, data: { spent: { increment: amount } } })
+  } catch {
+    // budget tracking must never block money movement
+  }
+}
+
+// ─── Round-up savings ────────────────────────────────────────────────────────
+
+/**
+ * Rounds a debit up to the nearest ₹10 × user multiplier and sweeps the
+ * difference into the user's "Round-Ups" smart pocket. Must be called
+ * INSIDE the same interactive transaction as the debit for atomicity —
+ * IMPORTANT: only `tx` operations are allowed here (SQLite deadlocks if
+ * a second connection writes while the outer transaction holds the lock).
+ */
+export async function applyRoundup(tx: {
+  smartPocket: {
+    findFirst(args: Record<string, unknown>): Promise<{ id: string; current: number; target: number } | null>
+    create(args: Record<string, unknown>): Promise<unknown>
+    update(args: Record<string, unknown>): Promise<unknown>
+  }
+  roundupConfig: {
+    findUnique(args: { where: { userId: string } }): Promise<{ enabled: boolean; multiplier: number; savedTotal: number } | null>
+    update(args: Record<string, unknown>): Promise<unknown>
+  }
+}, userId: string, debitAmount: number): Promise<number> {
+  const cfg = await tx.roundupConfig.findUnique({ where: { userId } })
+  if (!cfg?.enabled || cfg.multiplier <= 0) return 0
+
+  const remainder = debitAmount % 10
+  if (remainder === 0) return 0
+  const roundUp = Math.round(remainder * cfg.multiplier * 100) / 100
+  if (roundUp <= 0) return 0
+
+  const pocket = await tx.smartPocket.findFirst({
+    where: { userId, name: "Round-Ups" },
+  })
+  if (!pocket) {
+    await tx.smartPocket.create({
+      data: { userId, name: "Round-Ups", target: 10000, current: roundUp, category: "savings", color: "#2dd4bf" },
+    })
+  } else {
+    await tx.smartPocket.update({
+      where: { id: pocket.id },
+      data: { current: { increment: roundUp } },
+    })
+  }
+  await tx.roundupConfig.update({
+    where: { userId },
+    data: { savedTotal: { increment: roundUp } },
+  })
+  return roundUp
+}
+
 // ─── Event notifications ─────────────────────────────────────────────────────
 
 export async function notify(userId: string, title: string, body: string, type = "transaction"): Promise<void> {

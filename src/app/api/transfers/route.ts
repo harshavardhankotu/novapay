@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError } from "@/lib/banking"
+import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError, applyRoundup, updateBudgetSpent } from "@/lib/banking"
 
 class ApiError extends Error {
   constructor(public status: number, message: string) { super(message) }
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         }
       }
 
-      return tx.transaction.create({
+      const created = await tx.transaction.create({
         data: {
           accountId: fromAccountId,
           type: "DEBIT",
@@ -93,10 +93,14 @@ export async function POST(request: Request) {
           ...(typeof body.dedupeKey === "string" && body.dedupeKey ? { dedupeKey: body.dedupeKey } : {}),
         },
       })
+      // Interlocked PFM loop — round-up sweep inside the SAME transaction:
+      await applyRoundup(tx as any, payload.userId, amount)
+      return created
     }, { maxWait: 5000, timeout: 10000 })
 
     // ── Post-transaction side effects (never block the money movement) ──
     const points = await awardSpendPoints(payload.userId, amount)
+    await updateBudgetSpent(payload.userId, "Transfer", amount)
     await notify(
       payload.userId,
       "Money Sent",
