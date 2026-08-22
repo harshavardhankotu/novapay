@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from "@/lib/utils"
 import { useUserStore } from "@/store/user-store"
 import { Eye, EyeOff, Send, Plus, Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Sparkles, Waves } from "lucide-react"
 import { HealthScoreWidget } from "@/components/dashboard/health-widget"
+import { CashflowWidget } from "@/components/dashboard/cashflow-widget"
 
 export default function DashboardPage() {
   const { user, accounts, transactions, setTransactions } = useUserStore()
@@ -178,6 +179,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-4">
+          <CashflowWidget />
           <div className="bg-[#0e2633] rounded-2xl border border-[#1e3d4d]">
             <div className="px-5 py-4 border-b border-[#1e3d4d]">
               <h3 className="font-semibold text-white text-sm">Quick Actions</h3>
