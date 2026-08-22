@@ -45,7 +45,7 @@ export default function CbdcPage() {
       <div className="bg-[#0e2633]/60 border border-[#1e3d4d] rounded-2xl p-4 text-sm text-[#c9d4de] space-y-1.5">
         <p className="flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 shrink-0 text-[#2dd4bf]" />
           e₹ is <strong>token-based</strong> money issued by RBI — each unit is a discrete digital token with a serial, unlike the <strong>account-based</strong> UPI/bank ledger where balances are entries in a register. Your wallet below holds individual tokens; loading converts bank money to tokens, redeeming burns them back.</p>
-        <p className="text-[11px] text-[#8ea6b6]">SIMULATION — models RBI's CBDC pilot mechanics; no real central-bank money moves.</p>
+        <p className="text-[11px] text-[#8ea6b6]">SIMULATION — models RBI&apos;s CBDC pilot mechanics; no real central-bank money moves.</p>
       </div>
 
       {loading ? <Loader2 className="animate-spin mx-auto my-10 text-[#e8a33d]" /> : (
