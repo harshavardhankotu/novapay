@@ -4,6 +4,7 @@ import { getSlabRate, fdMaturity, rdMaturity, computeTds, savingsMonthlyInterest
 import { upsertWeeklySnapshot } from "@/lib/scoring"
 import { checkAndNudge } from "@/lib/early-warning"
 import { nextCollectionsStatus } from "@/lib/lending"
+import { deliverWebhook } from "@/lib/webhooks"
 
 export interface JobSummary {
   fdMatured: number
@@ -325,6 +326,11 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
           ? `₹${emi.toLocaleString("en-IN")} EMI failed again (${newCount} consecutive). Penalty ₹${penalty} added. Account moved to ${collectionsStatus} collections.`
           : `₹${emi.toLocaleString("en-IN")} EMI could not be processed (insufficient balance). We'll retry tomorrow.`
       )
+      // Webhook simulation: mandate.failed / emi.bounced event for registered listeners
+      await deliverWebhook("mandate.failed", {
+        userId, loanId: loan.id, amount: emi,
+        reason: "insufficient_balance", consecutiveBounces: newCount,
+      }).catch(() => {})
       summary.emisSkipped++
     }
   }

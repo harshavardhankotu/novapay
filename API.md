@@ -1,76 +1,61 @@
-# Revolut India API Documentation
+# NovaPay Developer API (v1)
 
-## Authentication
-All API routes (except /api/auth/*) require JWT token in httpOnly cookie.
+Base URL: `https://<host>/api/v1` · Auth: `X-API-Key: npk_…` header
 
-## Auth
-- `POST /api/auth/signup` - Create account (email, phone, name, password)
-- `POST /api/auth/login` - Login (email/phone + password)
-- `POST /api/auth/logout` - Clear session
-- `GET /api/auth/me` - Get current user profile
+Keys are scoped, rate-limited, and linked to exactly one NovaPay user — a key can only ever read or act on that user's data. Keys are created by admins in the Admin dashboard (Developer Platform section). The raw key is shown **once** at creation.
 
-## Banking
-- `GET/POST /api/accounts` - List/create accounts
-- `GET/POST /api/fixed-deposits` - Fixed deposits
-- `GET/POST /api/recurring-deposits` - Recurring deposits
-- `GET/POST /api/loans` - Loan products
-- `GET /api/credit-score` - CIBIL score with factors
-- `GET/POST /api/nre-accounts` - NRE/NRO accounts
+## Scopes
 
-## Cards
-- `GET/POST /api/cards` - List/apply cards
-- `PATCH /api/cards` - Freeze/unfreeze
-- `GET/POST/PATCH /api/saved-cards` - Saved card management
+| Scope | Grants |
+|---|---|
+| `accounts.read` | `GET /v1/accounts` |
+| `balance.read` | `GET /v1/balance?accountId=` |
+| `transfers.write` | `POST /v1/transfers` |
+| `mandates.write` | `POST /v1/mandates` |
 
-## Payments
-- `GET/POST /api/upi-ids` - UPI ID management
-- `GET/POST/PATCH /api/billers` - Biller management
-- `POST /api/bill-payments` - Pay bills
-- `GET/POST/PATCH /api/mandates` - Recurring payment mandates
+Rate limit default: 30 requests/min per key (`429` when exceeded, `Retry-After` header).
 
-## Transfers
-- `GET/POST /api/transfers` - List/make transfers
-- `GET/POST /api/transactions` - Transaction history
-- `GET/POST /api/budgets` - Budget management
+## Endpoints
 
-## Investments
-- `GET/POST /api/mutual-funds` - Mutual fund investments
-- `GET/PATCH /api/gold` - Digital gold
-- `GET /api/crypto` - Crypto holdings
+### GET /accounts
+```json
+{ "data": [{ "id": "…", "type": "SAVINGS", "currency": "INR", "accountNumber": "****5678" }] }
+```
 
-## Insurance
-- `GET/POST /api/insurance` - Insurance policies
+### GET /balance?accountId=
+```json
+{ "accountId": "…", "balance": 123456.78, "currency": "INR", "asOf": "…" }
+```
+Errors: `404 Account not found` (or outside key scope).
 
-## Security
-- `GET /api/security` - Security audit logs
-- `GET/DELETE /api/sessions` - Session management
-- `GET/DELETE /api/trusted-devices` - Device management
-- `GET/PATCH /api/two-factor-auth` - 2FA TOTP
-- `GET/POST /api/external-accounts` - Account Aggregator
+### POST /transfers
+```json
+{ "fromAccountId": "…", "toAccountNumber": "****1234", "amount": 500.25, "dedupeKey": "your-idempotency-key", "note": "optional" }
+```
+- `201` → `{ reference, amount(-ve debit), status, createdAt }`
+- Duplicate `dedupeKey` → `200 { duplicate: true, reference }` (no second movement)
+- Errors: `404 SOURCE_NOT_FOUND`, `400 INSUFFICIENT`, `400 Invalid amount`
+Fires webhook **transaction.completed**.
 
-## International
-- `GET/POST /api/lrs` - LRS remittance (RBI)
-- `GET /api/receiving-accounts` - International receiving
-- `GET/POST /api/esim` - eSIM data plans
+### POST /mandates
+```json
+{ "name": "Gym", "amount": 1500, "frequency": "MONTHLY", "accountId": "…" }
+```
+→ `201` mandate object. Fires **mandate.failed** on future failed auto-debits.
 
-## Features
-- `GET/POST/PATCH /api/pockets` - Smart Pockets
-- `GET/PATCH /api/roundups` - Round-up savings
-- `GET/POST /api/rewards` - Rewards & points
-- `GET/POST /api/referrals` - Referral program
-- `GET/POST /api/expense-splits` - Expense splitting
-- `GET /api/rupay-credit` - RuPay credit line
-- `GET/POST /api/disputes` - NPCI chargeback
-- `GET/POST /api/kids` - Kids accounts
-- `GET/POST /api/family` - Family account management
-- `GET /api/offers` - Offers & deals
-- `GET/POST /api/support` - Support tickets
+## Webhooks
 
-## Admin
-- `GET/POST /api/admin` - Admin operations
+Register callback URLs in the admin panel. Deliveries are `POST`ed with headers:
+```
+X-NovaPay-Event: transaction.completed
+X-NovaPay-Signature: t=<unix-ms>,v1=<hex hmac>
+```
+Verify with `HMAC_SHA256(secret, "<t>.<body>")`.
 
-## Notifications
-- `GET/PATCH /api/notifications` - Push/SMS/email notifications
+**Simulation note:** deliveries originate from the NovaPay simulation environment; amounts are simulated INR.
 
-## KYC
-- `GET/POST /api/kyc` - KYC document submission
+## Security model
+
+- Keys are stored as SHA-256 hashes; raw keys are unrecoverable.
+- Every request is rate-limited per-key and written to an audit log visible in the admin dashboard.
+- Ownership is enforced server-side via the key's linked user — cross-user access is structurally impossible regardless of scopes.

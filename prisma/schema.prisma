@@ -103,6 +103,7 @@ model User {
   closures         AccountClosure[]
   fraudFlags       FraudFlag[]
   nlQueryLogs      NlQueryLog[]
+  apiKeys          ApiKey[]
   overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
@@ -1100,6 +1101,45 @@ model NlQueryLog {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  userId     String
+  keyHash    String    @unique
+  prefix     String
+  scopes     String    // CSV: accounts.read,balance.read,transfers.write,mandates.write
+  ratePerMin Int       @default(30)
+  active     Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  requestLogs ApiRequestLog[]
+}
+
+model ApiRequestLog {
+  id        String   @id @default(cuid())
+  apiKeyId  String
+  method    String
+  path      String
+  status    Int
+  createdAt DateTime @default(now())
+
+  apiKey ApiKey @relation(fields: [apiKeyId], references: [id])
+}
+
+model WebhookRegistration {
+  id        String   @id @default(cuid())
+  url       String
+  events    String   // CSV: transaction.completed,mandate.failed
+  secret    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([events])
 }
 
 model AffiliateClick {
