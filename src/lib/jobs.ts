@@ -387,6 +387,58 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
     })
   }
 
+  // ── 3c. Standing instructions (recurring self-transfers) ──────────────────
+  const dueSis = await prisma.standingInstruction.findMany({
+    where: { userId, active: true, nextRun: { lte: now } },
+    include: { user: { select: { id: true } } },
+  })
+  for (const si of dueSis) {
+    const dest = await prisma.account.findUnique({ where: { accountNumber: si.toAccountNumber } })
+    const src = await prisma.account.findFirst({ where: { id: si.fromAccountId, userId } })
+    if (!dest || !src || src.balance < si.amount) {
+      await prisma.standingInstruction.update({
+        where: { id: si.id },
+        data: { nextRun: new Date(now.getTime() + 86400000) },
+      })
+      continue
+    }
+    const nextRun = advanceDate(si.nextRun, "MONTHLY")
+    await prisma.$transaction(async (tx) => {
+      await tx.account.update({ where: { id: src.id }, data: { balance: { decrement: si.amount } } })
+      if (dest.id !== src.id) {
+        await tx.account.update({ where: { id: dest.id }, data: { balance: { increment: si.amount } } })
+      }
+      await tx.transaction.create({
+        data: {
+          accountId: src.id, type: "DEBIT", amount: -si.amount, currency: "INR",
+          status: "COMPLETED", category: "Transfer",
+          description: `Standing instruction sweep${si.note ? ` · ${si.note}` : ""}`,
+          reference: `SI${si.id.slice(-6).toUpperCase()}${Date.now().toString().slice(-6)}`,
+          counterparty: `A/c ····${dest.accountNumber.slice(-4)}`,
+        },
+      })
+      if (dest.id !== src.id) {
+        await tx.transaction.create({
+          data: {
+            accountId: dest.id, type: "CREDIT", amount: si.amount, currency: "INR",
+            status: "COMPLETED", category: "Transfer",
+            description: `Auto-sweep received`,
+            reference: `SI${si.id.slice(-6).toUpperCase()}C${Date.now().toString().slice(-6)}`,
+            counterparty: `A/c ····${src.accountNumber.slice(-4)}`,
+          },
+        })
+      }
+      await tx.standingInstruction.update({ where: { id: si.id }, data: { nextRun } })
+    })
+  }
+
+  // ── 3d. NEFT batch settlement: PENDING → COMPLETED when due ───────────────
+  const dueNeft = await prisma.transaction.updateMany({
+    where: { status: "PENDING", scheduledFor: { lte: now }, account: { userId } },
+    data: { status: "COMPLETED" },
+  })
+  void dueNeft
+
   // ── 4. Financial Health Score weekly snapshot ─────────────────────────────
   try {
     await upsertWeeklySnapshot(userId)

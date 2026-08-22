@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError, applyRoundup, updateBudgetSpent } from "@/lib/banking"
+import { validateRail, assertRailAllows, resolveRailSchedule, RailError } from "@/lib/rails"
 
 class ApiError extends Error {
   constructor(public status: number, message: string) { super(message) }
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
     }
 
     await assertDebitAllowed(payload.userId, fromAccountId, amount)
+
+    // Rail differentiation: each rail carries its own operating rules
+    const rail = validateRail(body.rail)
+    assertRailAllows(rail, amount)
+    const { mode, scheduledFor } = resolveRailSchedule(rail, amount)
+    const txnStatus = scheduledFor ? "PENDING" : "COMPLETED"
 
     const reference = `TXN${Date.now()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`
     // Ledger convention: debits are stored SIGNED negative.
@@ -85,11 +92,12 @@ export async function POST(request: Request) {
           type: "DEBIT",
           amount: signedAmount,
           currency: fromAccount.currency,
-          status: "COMPLETED",
+          status: txnStatus,
           category: "Transfer",
           description: note || `Transfer to ${toAccountNumber || "external"}`,
           reference,
           counterparty: toAccountNumber || "External Account",
+          ...(scheduledFor ? { scheduledFor } : {}),
           ...(typeof body.dedupeKey === "string" && body.dedupeKey ? { dedupeKey: body.dedupeKey } : {}),
         },
       })
@@ -103,12 +111,14 @@ export async function POST(request: Request) {
     await updateBudgetSpent(payload.userId, "Transfer", amount)
     await notify(
       payload.userId,
-      "Money Sent",
-      `₹${amount.toLocaleString("en-IN")} sent to ${toAccountNumber || "external account"}${points ? ` · +${points} NovaPoints` : ""}`
+      scheduledFor ? "Transfer Scheduled" : "Money Sent",
+      scheduledFor
+        ? `₹${amount.toLocaleString("en-IN")} via ${rail} queued for ${scheduledFor.toLocaleString("en-IN")} (batch window).`
+        : `₹${amount.toLocaleString("en-IN")} sent via ${rail} to ${toAccountNumber || "external account"}${points ? ` · +${points} NovaPoints` : ""}`
     )
-    await audit(payload.userId, "TRANSFER_INITIATED", `${toAccountNumber ? "Transfer" : "Payout"} of ₹${amount} (${reference})`)
+    await audit(payload.userId, "TRANSFER_INITIATED", `${rail} ${toAccountNumber ? "transfer" : "payout"} of ₹${amount} (${reference})${scheduledFor ? " [scheduled]" : ""}`)
 
-    return NextResponse.json({ transfer, reference, pointsEarned: points })
+    return NextResponse.json({ transfer, reference, rail, pointsEarned: points, scheduled: !!scheduledFor, scheduledFor })
   } catch (error) {
     if (error instanceof LimitError) {
       const status = error.code === "KYC_REQUIRED" ? 403 : 400
@@ -116,6 +126,9 @@ export async function POST(request: Request) {
     }
     if (error instanceof ApiError) {
       return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+    if (error instanceof RailError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
     }
     return NextResponse.json({ error: "Transfer failed" }, { status: 500 })
   }

@@ -95,6 +95,8 @@ model User {
   tdsSummaries     TdsSummary[]
   scoreSnapshots   ScoreSnapshot[]
   loanApplications LoanApplication[]
+  standingInstructions StandingInstruction[]
+  chequeRequests   ChequeRequest[]
   overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
@@ -192,6 +194,7 @@ model Transaction {
   description  String
     reference   String
   dedupeKey   String?  @unique
+  scheduledFor DateTime?
   counterparty String?
   timestamp    DateTime          @default(now())
 
@@ -963,6 +966,37 @@ model OverdraftFacility {
 
   account Account @relation(fields: [accountId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
+}
+
+
+model StandingInstruction {
+  id            String   @id @default(cuid())
+  userId        String
+  fromAccountId String
+  toAccountNumber String
+  amount        Float
+  dayOfMonth    Int
+  note          String?
+  nextRun       DateTime @default(now())
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ChequeRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // CHEQUE_BOOK | DD
+  leaves    Int?
+  payee     String?
+  amount    Float?
+  status    String   @default("REQUESTED") // REQUESTED|ISSUED|DELIVERED
+  reference String
+  createdAt DateTime @default(now())
+  issuedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model AffiliateClick {
