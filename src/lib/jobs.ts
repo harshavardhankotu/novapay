@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notify, audit, assertDebitAllowed } from "@/lib/banking"
 import { getSlabRate, fdMaturity, rdMaturity, computeTds, savingsMonthlyInterest } from "@/lib/deposits"
 import { upsertWeeklySnapshot } from "@/lib/scoring"
+import { nextCollectionsStatus } from "@/lib/lending"
 
 export interface JobSummary {
   fdMatured: number
@@ -260,20 +261,69 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
             outstanding: newOutstanding,
             totalPaid: { increment: emi },
             status: closed ? "CLOSED" : "ACTIVE",
+            delinquencyCount: 0, // success resets the bounce streak
             ...(closed ? {} : { dueDate: advanceDate(dueDate, "MONTHLY") }),
           },
         })
+        // Mark the matching stored amortization installment as paid
+        const inst = await tx.amortizationInstallment.findFirst({
+          where: { loanId: loan.id, paidAt: null },
+          orderBy: { no: "asc" },
+        })
+        if (inst) {
+          await tx.amortizationInstallment.update({
+            where: { id: inst.id },
+            data: { paidAt: new Date() },
+          })
+        }
       })
       await notify(userId, closed ? "Loan Closed 🎉" : "EMI Debited", closed ? `Congratulations! Your ${loan.type.toLowerCase()} loan is fully repaid.` : `EMI of ₹${emi.toLocaleString("en-IN")} deducted. Remaining: ₹${newOutstanding.toLocaleString("en-IN")}.`)
       summary.emisProcessed++
     } catch {
-      // Insufficient balance / limit hit → mark overdue by pushing due date a day,
-      // notify, and retry tomorrow (banks charge penalties; we keep it gentle).
-      await prisma.loan.update({
-        where: { id: loan.id },
-        data: { dueDate: new Date(now.getTime() + 86400000) },
+      // ── Delinquency ladder (P2): bounce → penalty → collections flag ──
+      const newCount = loan.delinquencyCount + 1
+      const penalty = Math.round(loan.outstanding * 0.02 / 12 * 100) / 100 // 2% p.a. monthly on outstanding
+      const applyPenalty = newCount >= 2
+      const collectionsStatus = nextCollectionsStatus(newCount)
+      const penaltyRef = `PEN${loan.id.slice(-8).toUpperCase()}${Date.now().toString().slice(-5)}`
+
+      await prisma.$transaction(async (tx) => {
+        await tx.loan.update({
+          where: { id: loan.id },
+          data: {
+            dueDate: new Date(now.getTime() + 86400000),
+            delinquencyCount: newCount,
+            collectionsStatus,
+            ...(applyPenalty && penalty > 0 ? { outstanding: { increment: penalty }, penaltyAccrued: { increment: penalty } } : {}),
+          },
+        })
+        if (applyPenalty && penalty > 0) {
+          await tx.transaction.create({
+            data: {
+              accountId: loan.accountId,
+              type: "DEBIT",
+              amount: -penalty,
+              currency: "INR",
+              status: "COMPLETED",
+              category: "Loan",
+              description: `EMI bounce penalty · ${collectionsStatus} collections`,
+              reference: penaltyRef,
+              counterparty: "NovaPay Loans",
+            },
+          })
+          await tx.account.update({
+            where: { id: loan.accountId },
+            data: { balance: { decrement: penalty } },
+          })
+        }
       })
-      await notify(userId, "EMI Payment Failed", `₹${emi.toLocaleString("en-IN")} EMI could not be processed (insufficient balance). We'll retry tomorrow.`)
+      await notify(
+        userId,
+        applyPenalty ? "EMI Bounced — Penalty Applied" : "EMI Payment Failed",
+        applyPenalty
+          ? `₹${emi.toLocaleString("en-IN")} EMI failed again (${newCount} consecutive). Penalty ₹${penalty} added. Account moved to ${collectionsStatus} collections.`
+          : `₹${emi.toLocaleString("en-IN")} EMI could not be processed (insufficient balance). We'll retry tomorrow.`
+      )
       summary.emisSkipped++
     }
   }
@@ -322,6 +372,19 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
       await notify(userId, "Mandate Paused", `${mandate.name} was paused — insufficient balance for ₹${mandate.amount.toLocaleString("en-IN")}. Resume it from Mandates.`)
       summary.mandatesSkipped++
     }
+  }
+
+  // ── 3b. Overdraft interest accrual (daily, on utilized only) ──────────────
+  const odFacilities = await prisma.overdraftFacility.findMany({
+    where: { userId, status: "ACTIVE" },
+  })
+  for (const od of odFacilities) {
+    const daily = Math.round(((od.utilized + od.accruedInterest) * od.interestRate) / 36500 * 100) / 100
+    if (daily <= 0) continue
+    await prisma.overdraftFacility.update({
+      where: { id: od.id },
+      data: { accruedInterest: { increment: daily } },
+    })
   }
 
   // ── 4. Financial Health Score weekly snapshot ─────────────────────────────

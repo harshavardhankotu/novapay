@@ -94,6 +94,8 @@ model User {
   interestEntries  InterestEntry[]
   tdsSummaries     TdsSummary[]
   scoreSnapshots   ScoreSnapshot[]
+  loanApplications LoanApplication[]
+  overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
   receivingAccounts ReceivingAccount[]
@@ -150,6 +152,7 @@ model Account {
   transactions      Transaction[]
   interestEntries   InterestEntry[]
   jointHolders      JointHolder[]
+  overdraft         OverdraftFacility?
   outgoingTransfers   Transfer[] @relation("FromAccount")
   incomingTransfers   Transfer[] @relation("ToAccount")
   fixedDeposits       FixedDeposit[]
@@ -568,6 +571,8 @@ model Loan {
   foreclosureFee  Float      @default(0)
   delinquencyCount Int       @default(0)
   penaltyAccrued  Float      @default(0)
+  collectionsStatus String   @default("CURRENT")
+  schedule        AmortizationInstallment[]
   createdAt       DateTime   @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
@@ -906,6 +911,58 @@ model ScoreSnapshot {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
+}
+
+
+model LoanApplication {
+  id            String    @id @default(cuid())
+  userId        String
+  amount        Float
+  tenureMonths  Int
+  purpose       String?
+  status        String    @default("APPLIED") // APPLIED|APPROVED|DECLINED|DISBURSED
+  eligibilityJson String? // full evaluateEligibility() output snapshot
+  approvedAmount Float?
+  decisionReason String?
+  decidedBy     String?
+  decidedAt     DateTime?
+  loanId        String?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([status])
+}
+
+model AmortizationInstallment {
+  id             String    @id @default(cuid())
+  loanId         String
+  no             Int
+  dueDate        DateTime
+  openingBalance Float
+  principal      Float
+  interest       Float
+  total          Float
+  paidAt         DateTime?
+
+  loan Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([loanId, no])
+}
+
+model OverdraftFacility {
+  id              String  @id @default(cuid())
+  accountId       String  @unique
+  userId          String
+  limit           Float
+  utilized        Float   @default(0)
+  interestRate    Float   @default(18)
+  accruedInterest Float   @default(0)
+  status          String  @default("ACTIVE")
+  createdAt       DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
 }
 
 model AffiliateClick {

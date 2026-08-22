@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import * as React from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Users, Activity, AlertTriangle, BarChart3, Mail, MousePointerClick,
   TrendingUp, Database, RefreshCw, Loader2,
@@ -215,7 +216,79 @@ export default function AdminPage() {
       </section>
 
       <RatesPanel />
+      <LoanApplicationsPanel />
     </div>
+  )
+}
+
+function LoanApplicationsPanel() {
+  const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`
+  const [apps, setApps] = useState<any[]>([])
+  const [notes, setNotes] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState("")
+
+  const load = useCallback(() => {
+    fetch("/api/admin/loans/decide").then(r => r.json()).then(d => setApps(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+  useEffect(load, [load])
+
+  async function decide(id: string, action: "approve" | "decline") {
+    setBusy(id)
+    setMsg("")
+    try {
+      const res = await fetch("/api/admin/loans/decide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId: id, action, note: notes[id] || (action === "approve" ? "Sanctioned after review." : "") }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      setMsg(`${action === "approve" ? "Disbursed" : "Declined"} ✓`)
+      load()
+    } catch (err: any) {
+      setMsg(err?.message || "Failed")
+    } finally { setBusy(null) }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2dd4bf] flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4" /> Loan Applications Awaiting Decision
+      </h2>
+      {!apps.length ? (
+        <p className="text-sm text-[#8ea6b6]">No applications in the queue.</p>
+      ) : (
+        <div className="space-y-3">
+          {apps.map(a => {
+            const elig = (() => { try { return JSON.parse(a.eligibilityJson || "{}") } catch { return {} } })()
+            return (
+              <div key={a.id} className="bg-[#0e2633]/50 rounded-xl border border-[#1e3d4d] p-4 space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white font-medium">{a.user?.name || a.userId} · {money(a.amount)} · {a.tenureMonths}m</span>
+                  {elig.healthScore != null && <Badge variant={elig.healthScore >= 60 ? "success" : elig.healthScore >= 40 ? "warning" : "destructive"}>Score {elig.healthScore}</Badge>}
+                </div>
+                {elig.reasons && Array.isArray(elig.reasons) && (
+                  <ul className="text-[11px] text-[#8ea6b6] list-disc pl-4 space-y-0.5">
+                    {elig.reasons.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                  </ul>
+                )}
+                <input placeholder="Decision note (required to decline)" value={notes[a.id] || ""}
+                  onChange={e => setNotes(n => ({ ...n, [a.id]: e.target.value }))}
+                  className="w-full h-9 px-3 rounded-lg bg-[#071a26] border border-[#1e3d4d] text-xs text-white focus:border-[#e8a33d]/50 focus:outline-none" />
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={busy === a.id} onClick={() => decide(a.id, "approve")}
+                    className="bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0">Approve & Disburse</Button>
+                  <Button size="sm" variant="outline" disabled={busy === a.id} onClick={() => decide(a.id, "decline")}
+                    className="border-[#f87171]/40 text-[#f87171] hover:bg-[#f87171]/10">Decline</Button>
+                  {msg && busy === null && <span className="text-xs self-center text-[#4ade80]">{msg}</span>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </section>
   )
 }
 
