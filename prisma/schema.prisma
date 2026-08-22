@@ -68,56 +68,59 @@ enum RewardTier {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  phone     String    @unique
-  name      String
-  avatar    String?
-  password  String
-  aadhaar   String?   @unique
-  pan       String?   @unique
-  kycLevel  KycLevel  @default(UNVERIFIED)
-  status    UserStatus @default(ACTIVE)
-  role      String   @default("USER")
-  seniorCitizen Boolean @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String     @id @default(cuid())
+  email         String     @unique
+  phone         String     @unique
+  name          String
+  avatar        String?
+  password      String
+  aadhaar       String?    @unique
+  pan           String?    @unique
+  kycLevel      KycLevel   @default(UNVERIFIED)
+  status        UserStatus @default(ACTIVE)
+  role          String     @default("USER")
+  seniorCitizen Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  accounts Account[]
-  beneficiaries    Beneficiary[]
-  budgets          Budget[]
-  familiesParent   FamilyParent[] @relation("FamilyParentRelation")
-  familiesChild    FamilyParent[] @relation("FamilyChildRelation")
-  rewards          Reward[]
-  kycDocuments     KycDocument[]
-  affiliateClicks  AffiliateClick[]
-  interestEntries  InterestEntry[]
-  tdsSummaries     TdsSummary[]
-  scoreSnapshots   ScoreSnapshot[]
-  loanApplications LoanApplication[]
+  accounts             Account[]
+  beneficiaries        Beneficiary[]
+  budgets              Budget[]
+  familiesParent       FamilyParent[]         @relation("FamilyParentRelation")
+  familiesChild        FamilyParent[]         @relation("FamilyChildRelation")
+  rewards              Reward[]
+  kycDocuments         KycDocument[]
+  affiliateClicks      AffiliateClick[]
+  interestEntries      InterestEntry[]
+  tdsSummaries         TdsSummary[]
+  scoreSnapshots       ScoreSnapshot[]
+  loanApplications     LoanApplication[]
   standingInstructions StandingInstruction[]
-  chequeRequests   ChequeRequest[]
-  swipeAttempts    SwipeAttempt[]
-  strCases         StrCase[]
-  screeningHits    ScreeningHit[]
-  closures         AccountClosure[]
-  fraudFlags       FraudFlag[]
-  nlQueryLogs      NlQueryLog[]
-  apiKeys          ApiKey[]
-  overdrafts       OverdraftFacility[]
-  auditLogs        AuditLog[]
-  externalAccounts ExternalAccount[]
-  receivingAccounts ReceivingAccount[]
-  disputeTickets   DisputeTicket[]
-  esimPackages     EsimPackage[]
-  smartPockets     SmartPocket[]
-  kidsAccounts     KidsAccount[]
-  lrsTransactions  LRSTransaction[]
-  rewardRedemptions RewardRedemption[]
-  cryptoHoldings   CryptoHolding[]
-  digitalGold      DigitalGold?
-  roundupConfig    RoundupConfig?
-  rupayCreditLine  RuPayCreditLine?
+  chequeRequests       ChequeRequest[]
+  swipeAttempts        SwipeAttempt[]
+  strCases             StrCase[]
+  screeningHits        ScreeningHit[]
+  closures             AccountClosure[]
+  fraudFlags           FraudFlag[]
+  nlQueryLogs          NlQueryLog[]
+  apiKeys              ApiKey[]
+  erTokens             ErToken[]
+  erWalletTxns         ErWalletTxn[]
+  aaConsents           AaConsent[]
+  overdrafts           OverdraftFacility[]
+  auditLogs            AuditLog[]
+  externalAccounts     ExternalAccount[]
+  receivingAccounts    ReceivingAccount[]
+  disputeTickets       DisputeTicket[]
+  esimPackages         EsimPackage[]
+  smartPockets         SmartPocket[]
+  kidsAccounts         KidsAccount[]
+  lrsTransactions      LRSTransaction[]
+  rewardRedemptions    RewardRedemption[]
+  cryptoHoldings       CryptoHolding[]
+  digitalGold          DigitalGold?
+  roundupConfig        RoundupConfig?
+  rupayCreditLine      RuPayCreditLine?
   fixedDeposits        FixedDeposit[]
   recurringDeposits    RecurringDeposit[]
   loans                Loan[]
@@ -128,8 +131,8 @@ model User {
   billers              Biller[]
   paymentMandates      PaymentMandate[]
   nreAccounts          NreNroAccount[]
-  referralsMade        Referral[] @relation("Referrer")
-  referralsReceived    Referral[] @relation("Referee")
+  referralsMade        Referral[]             @relation("Referrer")
+  referralsReceived    Referral[]             @relation("Referee")
   expenseSplits        ExpenseSplit[]
   supportTickets       SupportTicket[]
   notifications        Notification[]
@@ -142,58 +145,58 @@ model User {
 }
 
 model Account {
-  id            String      @id @default(cuid())
-  userId        String
-  type          AccountType
-  balance       Float       @default(0)
-  currency      String      @default("INR")
-  accountNumber String      @unique
-  ifsc          String
-  upiHandle     String?   @unique
-  nomineeName    String?
+  id              String      @id @default(cuid())
+  userId          String
+  type            AccountType
+  balance         Float       @default(0)
+  currency        String      @default("INR")
+  accountNumber   String      @unique
+  ifsc            String
+  upiHandle       String?     @unique
+  nomineeName     String?
   nomineeRelation String?
-  isActive      Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  user              User       @relation(fields: [userId], references: [id])
+  user              User               @relation(fields: [userId], references: [id])
   cards             Card[]
   transactions      Transaction[]
   interestEntries   InterestEntry[]
   jointHolders      JointHolder[]
   overdraft         OverdraftFacility?
   swipes            SwipeAttempt[]
-  outgoingTransfers   Transfer[] @relation("FromAccount")
-  incomingTransfers   Transfer[] @relation("ToAccount")
-  fixedDeposits       FixedDeposit[]
-  recurringDeposits   RecurringDeposit[]
-  loans               Loan[]
-  paymentMandates     PaymentMandate[]
-  upiIds              UpiId[]
+  outgoingTransfers Transfer[]         @relation("FromAccount")
+  incomingTransfers Transfer[]         @relation("ToAccount")
+  fixedDeposits     FixedDeposit[]
+  recurringDeposits RecurringDeposit[]
+  loans             Loan[]
+  paymentMandates   PaymentMandate[]
+  upiIds            UpiId[]
 }
 
 model Card {
-  id              String      @id @default(cuid())
-  accountId       String
-  type            CardType
-  network         CardNetwork
-  lastFour        String
-  expiryMonth     Int
-  expiryYear      Int
-  cvv             String
-  status          CardStatus   @default(ACTIVE)
-  dailyLimit      Float        @default(100000)
-  monthlyLimit    Float        @default(500000)
-  isContactless   Boolean      @default(true)
-  isOnlineEnabled Boolean      @default(true)
-  internationalEnabled Boolean @default(false)
-  perTxLimit      Float?
+  id                   String      @id @default(cuid())
+  accountId            String
+  type                 CardType
+  network              CardNetwork
+  lastFour             String
+  expiryMonth          Int
+  expiryYear           Int
+  cvv                  String
+  status               CardStatus  @default(ACTIVE)
+  dailyLimit           Float       @default(100000)
+  monthlyLimit         Float       @default(500000)
+  isContactless        Boolean     @default(true)
+  isOnlineEnabled      Boolean     @default(true)
+  internationalEnabled Boolean     @default(false)
+  perTxLimit           Float?
   blockedMccCategories String?
-  dispatchStatus  String?
-  deliveryAddress String?
-  createdAt       DateTime     @default(now())
+  dispatchStatus       String?
+  deliveryAddress      String?
+  createdAt            DateTime    @default(now())
 
-  account Account @relation(fields: [accountId], references: [id])
+  account Account        @relation(fields: [accountId], references: [id])
   swipes  SwipeAttempt[]
 }
 
@@ -206,8 +209,8 @@ model Transaction {
   status       TransactionStatus @default(COMPLETED)
   category     String
   description  String
-    reference   String
-  dedupeKey   String?  @unique
+  reference    String
+  dedupeKey    String?           @unique
   scheduledFor DateTime?
   counterparty String?
   timestamp    DateTime          @default(now())
@@ -216,58 +219,58 @@ model Transaction {
 }
 
 model Transfer {
-  id              String        @id @default(cuid())
-  fromAccountId   String
-  toAccountId     String?
-  amount          Float
-  currency        String        @default("INR")
-  type            String        @default("NEFT")
-  status          TransactionStatus @default(PENDING)
-  reference       String        @unique
-  fromDetails     String?
-  toDetails       String?
-  createdAt       DateTime      @default(now())
+  id            String            @id @default(cuid())
+  fromAccountId String
+  toAccountId   String?
+  amount        Float
+  currency      String            @default("INR")
+  type          String            @default("NEFT")
+  status        TransactionStatus @default(PENDING)
+  reference     String            @unique
+  fromDetails   String?
+  toDetails     String?
+  createdAt     DateTime          @default(now())
 
-  fromAccount Account @relation("FromAccount", fields: [fromAccountId], references: [id])
+  fromAccount Account  @relation("FromAccount", fields: [fromAccountId], references: [id])
   toAccount   Account? @relation("ToAccount", fields: [toAccountId], references: [id])
 }
 
 model Beneficiary {
-  id            String  @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   name          String
   accountNumber String?
   ifsc          String?
   upiId         String?
   email         String?
-  type          String  @default("BANK")
-  isFavourite   Boolean @default(false)
+  type          String   @default("BANK")
+  isFavourite   Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model Budget {
-  id       String       @id @default(cuid())
-  userId   String
-  category String
-  amount   Float
-  spent    Float        @default(0)
-  period   BudgetPeriod @default(MONTHLY)
-  month    String
-  createdAt DateTime    @default(now())
+  id        String       @id @default(cuid())
+  userId    String
+  category  String
+  amount    Float
+  spent     Float        @default(0)
+  period    BudgetPeriod @default(MONTHLY)
+  month     String
+  createdAt DateTime     @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model FamilyParent {
-  id            String   @id @default(cuid())
-  parentId      String
-  childId       String
-  dailyLimit    Float    @default(5000)
-  monthlyLimit  Float    @default(50000)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  parentId     String
+  childId      String
+  dailyLimit   Float    @default(5000)
+  monthlyLimit Float    @default(50000)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
 
   parent User @relation("FamilyParentRelation", fields: [parentId], references: [id])
   child  User @relation("FamilyChildRelation", fields: [childId], references: [id])
@@ -286,13 +289,13 @@ model Reward {
 }
 
 model KycDocument {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
   type       String
-  status     String   @default("PENDING")
+  status     String    @default("PENDING")
   url        String?
   verifiedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -428,14 +431,14 @@ model RewardRedemption {
 }
 
 model CryptoHolding {
-  id         String @id @default(cuid())
-  userId     String
-  code       String
-  name       String
-  holdings   Float
-  priceInr   Float
-  change24h  Float  @default(0)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  name      String
+  holdings  Float
+  priceInr  Float
+  change24h Float    @default(0)
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -461,13 +464,13 @@ model RoundupConfig {
 }
 
 model RuPayCreditLine {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  totalLimit     Float    @default(150000)
-  usedLimit      Float    @default(0)
-  dueDate        DateTime
-  interestFreeDays Int    @default(45)
-  upiEnabled     Boolean  @default(true)
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  totalLimit       Float    @default(150000)
+  usedLimit        Float    @default(0)
+  dueDate          DateTime
+  interestFreeDays Int      @default(45)
+  upiEnabled       Boolean  @default(true)
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -536,74 +539,74 @@ enum UpsellStatus {
 }
 
 model FixedDeposit {
-  id            String   @id @default(cuid())
-  userId        String
-  accountId     String
-  fdType        FdType   @default(CUMULATIVE)
-  amount        Float
-  interestRate  Float
-  tenureMonths  Int
-  maturityDate  DateTime
+  id             String   @id @default(cuid())
+  userId         String
+  accountId      String
+  fdType         FdType   @default(CUMULATIVE)
+  amount         Float
+  interestRate   Float
+  tenureMonths   Int
+  maturityDate   DateTime
   maturityAmount Float
-  nominee       String?
-  autoRenew     Boolean  @default(false)
-  status        String   @default("ACTIVE")
-  createdAt     DateTime @default(now())
+  nominee        String?
+  autoRenew      Boolean  @default(false)
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
 
 model RecurringDeposit {
-  id               String   @id @default(cuid())
-  userId           String
-  accountId        String
-  monthlyAmount    Float
-  interestRate     Float
-  tenureMonths     Int
-  maturityDate     DateTime
-  totalDeposited   Float    @default(0)
-  missedPayments   Int      @default(0)
-  nominee          String?
-  status           String   @default("ACTIVE")
-  createdAt        DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  accountId      String
+  monthlyAmount  Float
+  interestRate   Float
+  tenureMonths   Int
+  maturityDate   DateTime
+  totalDeposited Float    @default(0)
+  missedPayments Int      @default(0)
+  nominee        String?
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
 
 model Loan {
-  id              String     @id @default(cuid())
-  userId          String
-  accountId       String
-  type            LoanType
-  principal       Float
-  interestRate    Float
-  tenureMonths    Int
-  emiAmount       Float
-  totalPaid       Float      @default(0)
-  outstanding     Float
-  disbursedAt     DateTime?
-  dueDate         DateTime?
-  status          LoanStatus @default(ACTIVE)
-  foreclosureFee  Float      @default(0)
-  delinquencyCount Int       @default(0)
-  penaltyAccrued  Float      @default(0)
-  collectionsStatus String   @default("CURRENT")
-  schedule        AmortizationInstallment[]
-  createdAt       DateTime   @default(now())
+  id                String                    @id @default(cuid())
+  userId            String
+  accountId         String
+  type              LoanType
+  principal         Float
+  interestRate      Float
+  tenureMonths      Int
+  emiAmount         Float
+  totalPaid         Float                     @default(0)
+  outstanding       Float
+  disbursedAt       DateTime?
+  dueDate           DateTime?
+  status            LoanStatus                @default(ACTIVE)
+  foreclosureFee    Float                     @default(0)
+  delinquencyCount  Int                       @default(0)
+  penaltyAccrued    Float                     @default(0)
+  collectionsStatus String                    @default("CURRENT")
+  schedule          AmortizationInstallment[]
+  createdAt         DateTime                  @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
 
 model CreditScore {
-  id         String   @id @default(cuid())
-  userId     String
-  bureau     String   @default("CIBIL")
-  score      Int
-  scoreRange String   @default("300-900")
-  reportDate DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  bureau      String   @default("CIBIL")
+  score       Int
+  scoreRange  String   @default("300-900")
+  reportDate  DateTime @default(now())
   lastUpdated DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
@@ -612,7 +615,7 @@ model CreditScore {
 }
 
 model MutualFundInvestment {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   fundName       String
   fundCategory   String
@@ -625,102 +628,102 @@ model MutualFundInvestment {
   sipFrequency   String?
   sipDay         Int?
   startDate      DateTime?
-  status         String   @default("ACTIVE")
-  createdAt      DateTime @default(now())
+  status         String    @default("ACTIVE")
+  createdAt      DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model InsurancePolicy {
-  id            String         @id @default(cuid())
-  userId        String
-  type          InsuranceType
-  provider      String
-  policyNumber  String         @unique
-  sumAssured    Float
-  premium       Float
-  premiumFrequency String      @default("YEARLY")
-  startDate     DateTime
-  endDate       DateTime
-  nominee       String?
-  status        String         @default("ACTIVE")
-  createdAt     DateTime       @default(now())
+  id               String        @id @default(cuid())
+  userId           String
+  type             InsuranceType
+  provider         String
+  policyNumber     String        @unique
+  sumAssured       Float
+  premium          Float
+  premiumFrequency String        @default("YEARLY")
+  startDate        DateTime
+  endDate          DateTime
+  nominee          String?
+  status           String        @default("ACTIVE")
+  createdAt        DateTime      @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model Biller {
-  id             String         @id @default(cuid())
-  userId         String
-  category       BillerCategory
-  name           String
-  consumerNo     String
-  nickname       String?
-  autoPay        Boolean        @default(false)
-  autoPayLimit   Float?
-  createdAt      DateTime       @default(now())
+  id           String         @id @default(cuid())
+  userId       String
+  category     BillerCategory
+  name         String
+  consumerNo   String
+  nickname     String?
+  autoPay      Boolean        @default(false)
+  autoPayLimit Float?
+  createdAt    DateTime       @default(now())
 
-  user        User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
   billPayments BillPayment[]
 }
 
 model BillPayment {
-  id         String   @id @default(cuid())
-  billerId   String
-  userId     String
-  amount     Float
-  reference  String   @unique
-  status     String   @default("PENDING")
-  paidAt     DateTime @default(now())
+  id        String   @id @default(cuid())
+  billerId  String
+  userId    String
+  amount    Float
+  reference String   @unique
+  status    String   @default("PENDING")
+  paidAt    DateTime @default(now())
 
   biller Biller @relation(fields: [billerId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
 }
 
 model PaymentMandate {
-  id            String            @id @default(cuid())
-  userId        String
-  name          String
-  amount        Float
-  frequency     MandateFrequency
-  customCron    String?
-  nextRun       DateTime
-  lastRun       DateTime?
-  accountId     String
-  status        String            @default("ACTIVE")
-  maxDebits     Int?
-  debitCount    Int               @default(0)
-  umrn          String?           @unique
-  createdAt     DateTime          @default(now())
+  id         String           @id @default(cuid())
+  userId     String
+  name       String
+  amount     Float
+  frequency  MandateFrequency
+  customCron String?
+  nextRun    DateTime
+  lastRun    DateTime?
+  accountId  String
+  status     String           @default("ACTIVE")
+  maxDebits  Int?
+  debitCount Int              @default(0)
+  umrn       String?          @unique
+  createdAt  DateTime         @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
 
 model NreNroAccount {
-  id            String      @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   type          String
-  accountNumber String      @unique
+  accountNumber String   @unique
   ifsc          String
-  balance       Float       @default(0)
-  currency      String      @default("INR")
-  repatriable   Boolean     @default(true)
+  balance       Float    @default(0)
+  currency      String   @default("INR")
+  repatriable   Boolean  @default(true)
   linkedFcnr    String?
-  status        String      @default("ACTIVE")
-  createdAt     DateTime    @default(now())
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model Referral {
-  id          String             @id @default(cuid())
-  referrerId  String
-  refereeId   String
-  code        String
-  rewardPoints Float             @default(500)
-  status      UpsellStatus       @default(ACTIVE)
-  createdAt   DateTime           @default(now())
+  id           String       @id @default(cuid())
+  referrerId   String
+  refereeId    String
+  code         String
+  rewardPoints Float        @default(500)
+  status       UpsellStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
 
   referrer User @relation("Referrer", fields: [referrerId], references: [id])
   referee  User @relation("Referee", fields: [refereeId], references: [id])
@@ -742,18 +745,18 @@ model ExpenseSplit {
 }
 
 model SupportTicket {
-  id        String          @id @default(cuid())
-  userId    String
-  subject   String
-  category  String
-  priority  String          @default("MEDIUM")
-  status    String          @default("OPEN")
+  id              String    @id @default(cuid())
+  userId          String
+  subject         String
+  category        String
+  priority        String    @default("MEDIUM")
+  status          String    @default("OPEN")
   firstResponseAt DateTime?
   resolutionAt    DateTime?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user     User           @relation(fields: [userId], references: [id])
+  user     User            @relation(fields: [userId], references: [id])
   messages TicketMessage[]
 }
 
@@ -769,14 +772,14 @@ model TicketMessage {
 }
 
 model Notification {
-  id        String             @id @default(cuid())
+  id        String              @id @default(cuid())
   userId    String
   title     String
   body      String
   type      String
   channel   NotificationChannel @default(PUSH)
-  read      Boolean            @default(false)
-  createdAt DateTime           @default(now())
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -810,19 +813,19 @@ model TrustedDevice {
 }
 
 model TwoFactorAuth {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  secret    String
-  method    String   @default("TOTP")
-  enabled   Boolean  @default(false)
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  secret      String
+  method      String   @default("TOTP")
+  enabled     Boolean  @default(false)
   backupCodes String?
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model SavedCard {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
   cardNumber  String
   cardNetwork CardNetwork
@@ -831,8 +834,8 @@ model SavedCard {
   expiryYear  Int
   cardholder  String
   nickname    String?
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  isDefault   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
@@ -866,7 +869,6 @@ model UpiId {
   account Account @relation(fields: [accountId], references: [id])
 }
 
-
 model InterestEntry {
   id            String   @id @default(cuid())
   userId        String
@@ -898,13 +900,13 @@ model TdsSummary {
 
 model RateSlab {
   id            String    @id @default(cuid())
-  product      String
-  minAmount    Float
-  maxAmount    Float?
-  tenureMonths Int?
-  rate         Float
-  effectiveFrom DateTime @default(now())
-  retiredAt    DateTime?
+  product       String
+  minAmount     Float
+  maxAmount     Float?
+  tenureMonths  Int?
+  rate          Float
+  effectiveFrom DateTime  @default(now())
+  retiredAt     DateTime?
 
   @@index([product, effectiveFrom])
 }
@@ -920,7 +922,6 @@ model JointHolder {
   account Account @relation(fields: [accountId], references: [id])
 }
 
-
 model ScoreSnapshot {
   id          String   @id @default(cuid())
   userId      String
@@ -933,21 +934,20 @@ model ScoreSnapshot {
   @@index([userId, createdAt])
 }
 
-
 model LoanApplication {
-  id            String    @id @default(cuid())
-  userId        String
-  amount        Float
-  tenureMonths  Int
-  purpose       String?
-  status        String    @default("APPLIED") // APPLIED|APPROVED|DECLINED|DISBURSED
+  id              String    @id @default(cuid())
+  userId          String
+  amount          Float
+  tenureMonths    Int
+  purpose         String?
+  status          String    @default("APPLIED") // APPLIED|APPROVED|DECLINED|DISBURSED
   eligibilityJson String? // full evaluateEligibility() output snapshot
-  approvedAmount Float?
-  decisionReason String?
-  decidedBy     String?
-  decidedAt     DateTime?
-  loanId        String?
-  createdAt     DateTime  @default(now())
+  approvedAmount  Float?
+  decisionReason  String?
+  decidedBy       String?
+  decidedAt       DateTime?
+  loanId          String?
+  createdAt       DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
@@ -971,108 +971,105 @@ model AmortizationInstallment {
 }
 
 model OverdraftFacility {
-  id              String  @id @default(cuid())
-  accountId       String  @unique
+  id              String   @id @default(cuid())
+  accountId       String   @unique
   userId          String
   limit           Float
-  utilized        Float   @default(0)
-  interestRate    Float   @default(18)
-  accruedInterest Float   @default(0)
-  status          String  @default("ACTIVE")
+  utilized        Float    @default(0)
+  interestRate    Float    @default(18)
+  accruedInterest Float    @default(0)
+  status          String   @default("ACTIVE")
   createdAt       DateTime @default(now())
 
   account Account @relation(fields: [accountId], references: [id])
   user    User    @relation(fields: [userId], references: [id])
 }
 
-
 model StandingInstruction {
-  id            String   @id @default(cuid())
-  userId        String
-  fromAccountId String
+  id              String   @id @default(cuid())
+  userId          String
+  fromAccountId   String
   toAccountNumber String
-  amount        Float
-  dayOfMonth    Int
-  note          String?
-  nextRun       DateTime @default(now())
-  active        Boolean  @default(true)
-  createdAt     DateTime @default(now())
+  amount          Float
+  dayOfMonth      Int
+  note            String?
+  nextRun         DateTime @default(now())
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model ChequeRequest {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  type      String   // CHEQUE_BOOK | DD
+  type      String // CHEQUE_BOOK | DD
   leaves    Int?
   payee     String?
   amount    Float?
-  status    String   @default("REQUESTED") // REQUESTED|ISSUED|DELIVERED
+  status    String    @default("REQUESTED") // REQUESTED|ISSUED|DELIVERED
   reference String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   issuedAt  DateTime?
 
   user User @relation(fields: [userId], references: [id])
 }
 
-
 model SwipeAttempt {
-  id         String   @id @default(cuid())
-  userId     String
-  cardId     String
-  accountId  String
-  channel    String   // POS | ATM | ONLINE
+  id          String   @id @default(cuid())
+  userId      String
+  cardId      String
+  accountId   String
+  channel     String // POS | ATM | ONLINE
   mccCategory String
-  amount     Float
-  intl       Boolean  @default(false)
-  result     String   // APPROVED | DECLINED
-  reason     String?
-  createdAt  DateTime @default(now())
+  amount      Float
+  intl        Boolean  @default(false)
+  result      String // APPROVED | DECLINED
+  reason      String?
+  createdAt   DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  card Card @relation(fields: [cardId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  card    Card    @relation(fields: [cardId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
 }
 
 model StrCase {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   subjectUserId String
   triggerRef    String
   rule          String
   summary       String
-  status        String   @default("OPEN") // OPEN|UNDER_REVIEW|CLEARED|ESCALATED
+  status        String    @default("OPEN") // OPEN|UNDER_REVIEW|CLEARED|ESCALATED
   assignedTo    String?
-  notesJson     String   @default("[]")
-  openedAt      DateTime @default(now())
+  notesJson     String    @default("[]")
+  openedAt      DateTime  @default(now())
   closedAt      DateTime?
 
   user User @relation(fields: [subjectUserId], references: [id])
 }
 
 model ScreeningHit {
-  id         String   @id @default(cuid())
-  userId     String
-  listName   String
-  matchedOn  String
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  listName  String
+  matchedOn String
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model AccountClosure {
-  id            String   @id @default(cuid())
-  userId        String
-  accountId     String
-  finalBalance  Float
-  duesDeducted  Float    @default(0)
-  status        String   @default("SETTLED")
-  nomineeNotified String  @default("no-nominee")
-  createdAt     DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  accountId       String
+  finalBalance    Float
+  duesDeducted    Float    @default(0)
+  status          String   @default("SETTLED")
+  nomineeNotified String   @default("no-nominee")
+  createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
-
 
 model FraudFlag {
   id        String   @id @default(cuid())
@@ -1091,18 +1088,16 @@ model FraudFlag {
   @@index([userId, createdAt])
 }
 
-
 model NlQueryLog {
-  id        String   @id @default(cuid())
-  userId    String
-  query     String
-  shape     String
+  id         String   @id @default(cuid())
+  userId     String
+  query      String
+  shape      String
   paramsJson String
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }
-
 
 model ApiKey {
   id         String    @id @default(cuid())
@@ -1110,13 +1105,13 @@ model ApiKey {
   userId     String
   keyHash    String    @unique
   prefix     String
-  scopes     String    // CSV: accounts.read,balance.read,transfers.write,mandates.write
+  scopes     String // CSV: accounts.read,balance.read,transfers.write,mandates.write
   ratePerMin Int       @default(30)
   active     Boolean   @default(true)
   lastUsedAt DateTime?
   createdAt  DateTime  @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user        User            @relation(fields: [userId], references: [id])
   requestLogs ApiRequestLog[]
 }
 
@@ -1134,12 +1129,48 @@ model ApiRequestLog {
 model WebhookRegistration {
   id        String   @id @default(cuid())
   url       String
-  events    String   // CSV: transaction.completed,mandate.failed
+  events    String // CSV: transaction.completed,mandate.failed
   secret    String
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
   @@index([events])
+}
+
+model ErToken {
+  id           String   @id @default(cuid())
+  serial       String   @unique
+  denomination Int
+  ownerId      String?
+  state        String   @default("WALLET") // WALLET|BURNED
+  createdAt    DateTime @default(now())
+
+  owner User? @relation(fields: [ownerId], references: [id])
+}
+
+model ErWalletTxn {
+  id           String   @id @default(cuid())
+  userId       String
+  kind         String // LOAD | REDEEM | P2P_OUT | P2P_IN
+  amount       Float
+  counterparty String?
+  tokenSerials String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AaConsent {
+  id            String    @id @default(cuid())
+  userId        String
+  dataScopes    String // CSV: balances,transactions,deposits
+  durationDays  Int
+  status        String    @default("ACTIVE") // ACTIVE|REVOKED
+  approvedAt    DateTime  @default(now())
+  revokedAt     DateTime?
+  syntheticData String? // JSON snapshot of simulated external accounts
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model AffiliateClick {

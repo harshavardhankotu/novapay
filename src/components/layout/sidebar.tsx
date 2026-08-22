@@ -11,7 +11,7 @@ import {
   Send, Gem, CandlestickChart, FileText, Landmark, Repeat,
   PiggyBank as Piggy, TrendingUp, BarChart3, Zap, RefreshCw,
   Bell, Monitor, KeyRound, Tag, Calculator, MessageCircle,
-  Plus, Shield, Split, Copy, Ship,
+  Plus, Shield, Split, Copy, Ship, Phone, IndianRupee,
 } from "lucide-react"
 
 const navSections: { label: string; items: { label: string; href: string; icon: any }[] }[] = [
@@ -57,6 +57,8 @@ const navSections: { label: string; items: { label: string; href: string; icon: 
     { label: "Referrals", href: "/referrals", icon: Copy },
     { label: "Split Expenses", href: "/expenses", icon: Split },
     { label: "Calculators", href: "/calculators", icon: Calculator },
+    { label: "IVR Banking", href: "/ivr", icon: Phone },
+    { label: "e₹ Wallet", href: "/cbdc", icon: IndianRupee },
   ]},
   { label: "Support", items: [
     { label: "Notifications", href: "/notifications", icon: Bell },
