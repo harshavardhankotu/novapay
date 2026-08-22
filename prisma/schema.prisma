@@ -102,6 +102,7 @@ model User {
   screeningHits    ScreeningHit[]
   closures         AccountClosure[]
   fraudFlags       FraudFlag[]
+  nlQueryLogs      NlQueryLog[]
   overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
@@ -1087,6 +1088,18 @@ model FraudFlag {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
+}
+
+
+model NlQueryLog {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  shape     String
+  paramsJson String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 model AffiliateClick {
