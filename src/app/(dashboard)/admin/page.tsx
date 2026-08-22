@@ -218,7 +218,78 @@ export default function AdminPage() {
       <RatesPanel />
       <LoanApplicationsPanel />
       <StrCasesPanel />
+      <FraudRadarPanel />
     </div>
+  )
+}
+
+function FraudRadarPanel() {
+  const [flags, setFlags] = useState<any[]>([])
+  const [target, setTarget] = useState("test@novapay.in")
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<any>(null)
+
+  const load = useCallback(() => {
+    fetch("/api/admin/fraud-sandbox").then(r => r.json()).then(d => setFlags(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+  useEffect(load, [load])
+
+  async function inject() {
+    setBusy(true)
+    try {
+      const d = await fetch("/api/admin/fraud-sandbox", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetEmail: target }),
+      }).then(r => r.json())
+      setResult(d)
+      load()
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2dd4bf] flex items-center gap-2">
+        <Activity className="h-4 w-4" /> Fraud Radar
+      </h2>
+
+      <div className="bg-[#0e2633]/50 border border-[#1e3d4d] rounded-2xl p-4 space-y-2">
+        <p className="text-xs text-[#8ea6b6]">Sandbox: inject a synthetic ₹9.5L transfer to a brand-new recipient on a demo account, then watch the rules fire live with their reasons.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input value={target} onChange={e => setTarget(e.target.value)} placeholder="target email"
+            className="h-9 px-3 rounded-lg bg-[#071a26] border border-[#1e3d4d] text-xs text-white focus:border-[#e8a33d]/50 focus:outline-none" />
+          <Button size="sm" disabled={busy} onClick={inject}
+            className="h-9 bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#d97706] text-[#1a1206] border-0">
+            {busy ? "Injecting…" : "Inject Suspicious Txn"}
+          </Button>
+        </div>
+        {result && (
+          <div className="text-xs space-y-1 pt-1">
+            <p className={result.flagsTriggered > 0 ? "text-[#f87171] font-medium" : "text-[#4ade80]"}>
+              {result.flagsTriggered} rule{result.flagsTriggered === 1 ? "" : "s"} triggered
+            </p>
+            {(result.flags || []).map((f: any) => (
+              <div key={f.rule} className="border-l-2 pl-2 py-0.5" style={{ borderColor: f.severity === "HIGH" ? "#f87171" : "#fbbf24" }}>
+                <span className="text-white font-medium">{f.rule}</span> — {f.reason}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+        {flags.map(f => (
+          <div key={f.id} className="flex items-start justify-between gap-3 text-xs bg-[#0e2633]/40 rounded-lg px-3 py-2 border border-[#1e3d4d]/60">
+            <div className="min-w-0">
+              <span className={`font-semibold ${f.severity === "HIGH" ? "text-[#f87171]" : "text-[#fbbf24]"}`}>{f.rule}</span>
+              <span className="text-[#8ea6b6]"> · {f.user?.email}</span>
+              <p className="text-[11px] text-[#c9d4de] mt-0.5">{f.reason}</p>
+            </div>
+            <span className="shrink-0 text-[10px] text-[#8ea6b6]">{new Date(f.createdAt).toLocaleTimeString()}</span>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 

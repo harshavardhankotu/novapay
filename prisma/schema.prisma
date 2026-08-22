@@ -101,6 +101,7 @@ model User {
   strCases         StrCase[]
   screeningHits    ScreeningHit[]
   closures         AccountClosure[]
+  fraudFlags       FraudFlag[]
   overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
@@ -1068,6 +1069,24 @@ model AccountClosure {
   createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+
+model FraudFlag {
+  id        String   @id @default(cuid())
+  userId    String
+  txnRef    String
+  rail      String?
+  amount    Float
+  rule      String
+  reason    String
+  severity  String   @default("MEDIUM")
+  strCaseId String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }
 
 model AffiliateClick {
