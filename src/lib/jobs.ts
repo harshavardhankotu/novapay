@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notify, audit, assertDebitAllowed } from "@/lib/banking"
 import { getSlabRate, fdMaturity, rdMaturity, computeTds, savingsMonthlyInterest } from "@/lib/deposits"
 import { upsertWeeklySnapshot } from "@/lib/scoring"
+import { checkAndNudge } from "@/lib/early-warning"
 import { nextCollectionsStatus } from "@/lib/lending"
 
 export interface JobSummary {
@@ -444,6 +445,13 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
     await upsertWeeklySnapshot(userId)
   } catch {
     // scoring must never break the batch
+  }
+
+  // ── 5. Early-warning trajectory check (P8) ────────────────────────────────
+  try {
+    await checkAndNudge(userId)
+  } catch {
+    // nudges must never break the batch
   }
 
   return summary

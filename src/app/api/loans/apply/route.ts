@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { evaluateEligibility } from "@/lib/lending"
+import { evaluateEligibilityWithModel } from "@/lib/lending"
 import { notify, audit } from "@/lib/banking"
 
 /** POST /api/loans/apply {amount, tenureMonths, purpose} */
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You already have an application under review" }, { status: 409 })
     }
 
-    const eligibility = await evaluateEligibility(p.userId, amount, tenureMonths)
+    const eligibility = await evaluateEligibilityWithModel(p.userId, amount, tenureMonths)
 
     const app = await prisma.loanApplication.create({
       data: {

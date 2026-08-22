@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { gatherHealthInputs, computeHealthScore } from "@/lib/scoring"
+import { gatherAltInputs, computeAltScore, THIN_FILE_TXN_THRESHOLD, type AltDecision } from "@/lib/alt-scoring"
 
 /**
  * ── Lending primitives (P2) ──────────────────────────────────────────────────
@@ -84,6 +85,81 @@ export interface EligibilityResult {
   rate: number
   reasons: string[]
   healthScore: number
+  model?: "HEALTH_SCORE" | "ALT_THIN_FILE"
+}
+
+/**
+ * Thin-file users (few transactions / no detected salary income) are routed to
+ * the P8 alternative model instead of the P3 health score.
+ */
+export async function evaluateEligibilityWithModel(
+  userId: string,
+  requestedAmount: number,
+  tenureMonths: number
+): Promise<EligibilityResult & { alt?: AltDecision }> {
+  const [altInputs, healthInputs] = await Promise.all([
+    gatherAltInputs(userId),
+    gatherHealthInputs(userId),
+  ])
+  const thinFile = healthInputs.monthlyIncome <= 0 || altInputs.txnCount90d < THIN_FILE_TXN_THRESHOLD
+
+  if (!thinFile) {
+    const base = await evaluateEligibility(userId, requestedAmount, tenureMonths)
+    return { ...base, model: "HEALTH_SCORE" }
+  }
+
+  // ── Thin-file path: alternative model decides ──
+  const reasons: string[] = [
+    `Thin file detected (${altInputs.txnCount90d} txns in 90 days) — assessed with our alternative model built for limited history.`,
+  ]
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { kycLevel: true } })
+  if (user?.kycLevel !== "FULL") {
+    reasons.push("Full KYC is still required before any sanction.")
+    return {
+      decision: "DECLINE", approvedAmount: 0, rate: LENDING_RATE_DEFAULT,
+      reasons, healthScore: 0, model: "ALT_THIN_FILE",
+      alt: { ...computeAltScore(altInputs), thinFile },
+    }
+  }
+
+  const alt = computeAltScore(altInputs)
+  reasons.push(...alt.reasons)
+
+  // Affordability ceiling shared with the standard path
+  const maxEmiTotal = healthInputs.monthlyIncome * MAX_BURDEN_RATIO
+  const emiHeadroom = Math.max(
+    500, // absolute floor so thin-file users can still borrow something small
+    maxEmiTotal === 0 ? 2000 : Math.min(maxEmiTotal, reverseEmi(Math.max(1500, healthInputs.monthlySpend * 0.4), LENDING_RATE_DEFAULT, tenureMonths))
+  )
+
+  let decision: Decision
+  let approvedAmount: number
+
+  if (alt.decision === "DECLINE") {
+    decision = "DECLINE"
+    approvedAmount = 0
+  } else {
+    decision = alt.decision === "APPROVE" ? "APPROVE" : "APPROVE_WITH_LIMIT"
+    approvedAmount = Math.min(requestedAmount, Math.floor(reverseEmi(emiHeadroom * (alt.suggestedLimitMultiplier / 3), LENDING_RATE_DEFAULT, tenureMonths)))
+    if (approvedAmount < 10000) approvedAmount = decision === "APPROVE" ? 10000 : approvedAmount
+    if (approvedAmount > requestedAmount) approvedAmount = requestedAmount
+  }
+
+  void reasons
+  const mergedReasons: string[] = [...reasons]
+  if (decision !== "DECLINE") {
+    mergedReasons.push(`Sanctioned amount ₹${approvedAmount.toLocaleString("en-IN")} keeps the simulated EMI within your observed cash-flows.`)
+  }
+
+  return {
+    decision,
+    approvedAmount,
+    rate: LENDING_RATE_DEFAULT,
+    reasons: mergedReasons,
+    healthScore: alt.composite, // reuse field as composite alt score for UI consistency
+    model: "ALT_THIN_FILE",
+    alt: { ...alt, thinFile: true },
+  }
 }
 
 /**
