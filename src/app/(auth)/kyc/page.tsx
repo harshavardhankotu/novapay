@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Camera, FileText, ShieldCheck, Check, ChevronRight, AlertCircle, Loader2, Ship, Smartphone } from "lucide-react"
 import { APP_NAME } from "@/lib/constants"
 import { StarField } from "@/components/star-field"
+import { useLang } from "@/lib/i18n/provider"
 import { validateAadhaar, validatePan } from "@/lib/validation"
 
 const steps = [
@@ -17,6 +18,7 @@ const steps = [
 ]
 
 export default function KycPage() {
+  const { t } = useLang()
   const router = useRouter()
 
   // eKYC state
@@ -109,7 +111,7 @@ export default function KycPage() {
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-[#e8a33d] to-[#2dd4bf] flex items-center justify-center mx-auto shadow-lg shadow-[#e8a33d]/30">
             <Ship className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mt-4 text-white">Complete Your KYC</h1>
+          <h1 className="text-2xl font-bold mt-4 text-white">{t("completeKyc")}</h1>
           <p className="text-sm text-[#8ea6b6] mt-1">RBI requires full KYC. We make it fast.</p>
         </div>
 

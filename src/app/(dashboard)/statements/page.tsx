@@ -66,7 +66,7 @@ export default function StatementsPage() {
           className="text-[#8ea6b6] hover:text-white text-sm flex items-center gap-1"
           title="Download PDF statement with running balance (last 3 months)"
         >
-          <Download className="w-4 h-4" /> PDF Statement
+          <Download className="w-4 h-4" /> PDF Statement (EN)
         </a>
       </div>
 

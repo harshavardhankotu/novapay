@@ -54,7 +54,7 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-white">
             Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"}, {user?.name?.split(" ")[0] || "User"}
           </h1>
-          <p className="text-sm text-[#8ea6b6]">Here&apos;s your financial universe</p>
+          <p className="text-sm text-[#8ea6b6]">Here&apos;s your financial universe · <a href="/dashboard/lite" className="underline hover:text-white">Lite version</a></p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="hidden sm:flex border-[#1e3d4d] text-[#8ea6b6] hover:text-white hover:bg-[#0e2633]">

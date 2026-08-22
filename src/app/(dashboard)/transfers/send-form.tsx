@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { ArrowRight, User, Building2, Globe, Clock, Star, Search, CheckCircle2, AlertCircle, Loader2, ArrowUpDown } from "lucide-react"
 import * as React from "react"
+import { useLang } from "@/lib/i18n/provider"
 import { useUserStore } from "@/store/user-store"
 
 type TxMethod = "neft" | "upi" | "international"
@@ -17,6 +18,7 @@ interface Beneficiary {
 }
 
 export function SendMoneyForm() {
+  const { t } = useLang()
   const { accounts, fetchMe } = useUserStore()
   const [method, setMethod] = React.useState<TxMethod>("neft")
   const [fromAccountId, setFromAccountId] = React.useState("")
@@ -158,7 +160,7 @@ export function SendMoneyForm() {
 
           <Button type="submit" disabled={status === "loading" || !amount || !fromAccountId}
             className={`w-full h-12 text-base border-0 ${status !== "loading" ? "bg-gradient-to-r from-[#e8a33d] to-[#2dd4bf] hover:from-[#d18a24] hover:to-[#14a390] text-[#071a26]" : ""}`}>
-            {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : <>Send Money Securely <ArrowRight className="h-4 w-4 ml-1" /></>}
+            {status === "loading" ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : <>{t("sendMoney")} <ArrowRight className="h-4 w-4 ml-1" /></>}
           </Button>
           <p className="text-[10px] text-center text-[#8ea6b6]">
             Protected by limits, OTP session & idempotency keys · debits earn NovaPoints
