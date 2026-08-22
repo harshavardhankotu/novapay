@@ -116,6 +116,10 @@ export function parseIntentDeterministic(query: string): { shape: ShapeName; par
   if (hasAny("spend by category", "categories", "spend on", "how much did i spend", "spent on")) {
     return { shape: "SPEND_BY_CATEGORY", params: { days: days || 30 } }
   }
+  // Generic bare-spend phrasing ("where did my money go", "spend last 2 weeks")
+  if (hasAny("spend", "spent")) {
+    return { shape: "SPEND_BY_CATEGORY", params: { days: days || 30 } }
+  }
   return null
 }
 
