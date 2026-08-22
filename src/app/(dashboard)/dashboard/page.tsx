@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { useUserStore } from "@/store/user-store"
 import { Eye, EyeOff, Send, Plus, Download, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Sparkles, Waves } from "lucide-react"
+import { HealthScoreWidget } from "@/components/dashboard/health-widget"
 
 export default function DashboardPage() {
   const { user, accounts, transactions, setTransactions } = useUserStore()
@@ -65,7 +66,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-5">
+          <HealthScoreWidget />
           <div className="rounded-2xl p-5 sm:p-6 text-white bg-gradient-to-br from-[#062c3a] via-[#0a3a4d] to-[#071a26] border border-[#e8a33d]/20 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(232,163,61,0.12)_0%,transparent_60%)]" />
             <div className="relative z-10">

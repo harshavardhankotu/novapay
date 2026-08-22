@@ -93,6 +93,7 @@ model User {
   affiliateClicks  AffiliateClick[]
   interestEntries  InterestEntry[]
   tdsSummaries     TdsSummary[]
+  scoreSnapshots   ScoreSnapshot[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
   receivingAccounts ReceivingAccount[]
@@ -565,6 +566,8 @@ model Loan {
   dueDate         DateTime?
   status          LoanStatus @default(ACTIVE)
   foreclosureFee  Float      @default(0)
+  delinquencyCount Int       @default(0)
+  penaltyAccrued  Float      @default(0)
   createdAt       DateTime   @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
@@ -890,6 +893,19 @@ model JointHolder {
   createdAt    DateTime @default(now())
 
   account Account @relation(fields: [accountId], references: [id])
+}
+
+
+model ScoreSnapshot {
+  id          String   @id @default(cuid())
+  userId      String
+  total       Int
+  factorsJson String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }
 
 model AffiliateClick {

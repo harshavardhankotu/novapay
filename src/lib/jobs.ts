@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notify, audit, assertDebitAllowed } from "@/lib/banking"
 import { getSlabRate, fdMaturity, rdMaturity, computeTds, savingsMonthlyInterest } from "@/lib/deposits"
+import { upsertWeeklySnapshot } from "@/lib/scoring"
 
 export interface JobSummary {
   fdMatured: number
@@ -321,6 +322,13 @@ export async function processUserJobs(userId: string): Promise<JobSummary> {
       await notify(userId, "Mandate Paused", `${mandate.name} was paused — insufficient balance for ₹${mandate.amount.toLocaleString("en-IN")}. Resume it from Mandates.`)
       summary.mandatesSkipped++
     }
+  }
+
+  // ── 4. Financial Health Score weekly snapshot ─────────────────────────────
+  try {
+    await upsertWeeklySnapshot(userId)
+  } catch {
+    // scoring must never break the batch
   }
 
   return summary
