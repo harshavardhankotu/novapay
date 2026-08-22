@@ -11,7 +11,7 @@
 
 export const EXTRACTABLE_CATEGORIES = [
   "Food & Dining", "Groceries", "Shopping", "Transportation",
-  "Bills & Utilities", "Healthcare", "Entertainment",
+  "Bills & Utilities", "Healthcare", "Entertainment", "Other",
 ] as const
 export type ExtractableCategory = (typeof EXTRACTABLE_CATEGORIES)[number]
 
