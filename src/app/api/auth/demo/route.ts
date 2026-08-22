@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { signToken, setTokenCookie } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { seedDemoUser, ensureAdminUser, DEMO_EMAIL } from "@seed-data"
+import { seedDemoUser, ensureAdminUser, ensureRateSlabs, DEMO_EMAIL } from "@seed-data"
 
 // Instant demo: ensures the seeded account exists, then issues a real
 // session for it. No signup, no password — powers the "Try Live Demo" CTA.
@@ -11,7 +11,10 @@ export async function POST() {
     if (!user) {
       await seedDemoUser(prisma as any)
       await ensureAdminUser(prisma as any)
+      await ensureRateSlabs(prisma as any)
       user = await prisma.user.findUnique({ where: { email: DEMO_EMAIL } })
+    } else {
+      await ensureRateSlabs(prisma as any)
     }
     if (!user) {
       return NextResponse.json({ error: "Demo unavailable. Run `npm run seed`." }, { status: 503 })

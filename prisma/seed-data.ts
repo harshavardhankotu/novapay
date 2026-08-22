@@ -60,6 +60,25 @@ export async function ensureAdminUser(prisma: PrismaLike): Promise<boolean> {
   }
 }
 
+/** Seeds the default interest-rate slab table (admin-editable afterwards). */
+export async function ensureRateSlabs(prisma: PrismaLike): Promise<void> {
+  const existing = (prisma as any).rateSlab
+  if (!existing) return
+  const count = await existing.count()
+  if (count > 0) return
+  const now = new Date()
+  const rows = [
+    { product: "SAVINGS", minAmount: 0, maxAmount: null, tenureMonths: null, rate: 3.5 },
+    { product: "FD", minAmount: 0, maxAmount: 99999, tenureMonths: 12, rate: 7.0 },
+    { product: "FD", minAmount: 100000, maxAmount: null, tenureMonths: 12, rate: 7.25 },
+    { product: "FD", minAmount: 0, maxAmount: null, tenureMonths: 24, rate: 7.5 },
+    { product: "RD", minAmount: 0, maxAmount: null, tenureMonths: null, rate: 6.5 },
+  ]
+  for (const r of rows) {
+    await existing.create({ data: { ...r, effectiveFrom: now } })
+  }
+}
+
 /**
  * Idempotent demo seed. Migrates legacy-branded users, otherwise creates
  * a fully populated demo account. Safe to call on every cold boot.

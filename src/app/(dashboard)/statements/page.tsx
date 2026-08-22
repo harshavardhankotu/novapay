@@ -61,7 +61,13 @@ export default function StatementsPage() {
             <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${period === p ? "bg-[#2dd4bf] text-white" : "bg-[#0e2633] text-[#8ea6b6]"}`}>{p}</button>
           ))}
         </div>
-        <button className="text-[#8ea6b6] hover:text-white text-sm flex items-center gap-1"><Download className="w-4 h-4" /> Export</button>
+        <a
+          href="/api/statements/pdf?months=3"
+          className="text-[#8ea6b6] hover:text-white text-sm flex items-center gap-1"
+          title="Download PDF statement with running balance (last 3 months)"
+        >
+          <Download className="w-4 h-4" /> PDF Statement
+        </a>
       </div>
 
       {loading ? (

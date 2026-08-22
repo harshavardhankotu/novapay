@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import {
   Users, Activity, AlertTriangle, BarChart3, Mail, MousePointerClick,
@@ -212,6 +213,98 @@ export default function AdminPage() {
           ))}
         </div>
       </section>
+
+      <RatesPanel />
     </div>
+  )
+}
+
+function RatesPanel() {
+  const [slabs, setSlabs] = useState<{ active: any[]; retired: any[] } | null>(null)
+  const [form, setForm] = useState({ product: "FD", minAmount: "", maxAmount: "", tenureMonths: "12", rate: "" })
+  const [msg, setMsg] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const load = React.useCallback(() => {
+    fetch("/api/admin/rates").then(r => r.json()).then(setSlabs).catch(() => {})
+  }, [])
+  useEffect(load, [])
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true); setMsg("")
+    try {
+      const res = await fetch("/api/admin/rates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      setMsg(`Saved: ${form.product} ${form.rate}% slab active (previous overlapping versions retired)`)
+      setForm(f => ({ ...f, rate: "" }))
+      load()
+    } catch (err: any) {
+      setMsg(err?.message || "Failed")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="space-y-4">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2dd4bf] mb-1">Interest Rate Table</h2>
+      {!slabs ? <p className="text-sm text-[#8ea6b6]">Loading slabs…</p> : (
+        <>
+          <div className="rounded-2xl border border-[#1e3d4d] overflow-hidden">
+            <table className="w-full text-xs">
+              <thead className="bg-[#0e2633] text-[#8ea6b6]">
+                <tr>{["Product", "Amount Range", "Tenure", "Rate %", "Effective From"].map(h => <th key={h} className="px-3 py-2 text-left font-medium">{h}</th>)}</tr>
+              </thead>
+              <tbody className="divide-y divide-[#1e3d4d]/60">
+                {slabs.active.map((s: any) => (
+                  <tr key={s.id} className="bg-[#0e2633]/30">
+                    <td className="px-3 py-2 text-white font-medium">{s.product}</td>
+                    <td className="px-3 py-2 text-[#c9d4de]">₹{s.minAmount.toLocaleString("en-IN")} – {s.maxAmount != null ? `₹${s.maxAmount.toLocaleString("en-IN")}` : "∞"}</td>
+                    <td className="px-3 py-2 text-[#8ea6b6]">{s.tenureMonths ?? "any"}m</td>
+                    <td className="px-3 py-2 text-[#f2bd68] font-semibold">{s.rate}%</td>
+                    <td className="px-3 py-2 text-[#8ea6b6]">{new Date(s.effectiveFrom).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+                {slabs.active.length === 0 && <tr><td colSpan={5} className="px-3 py-4 text-center text-[#8ea6b6]">No active slabs — defaults apply (FD 7%, RD 6.5%, Savings 3.5%)</td></tr>}
+              </tbody>
+            </table>
+          </div>
+
+          <form onSubmit={save} className="flex flex-wrap items-end gap-3 bg-[#0e2633]/50 border border-[#1e3d4d] rounded-2xl p-4">
+            <select value={form.product} onChange={e => setForm(f => ({ ...f, product: e.target.value }))}
+              className="h-10 px-3 rounded-lg bg-[#071a26] border border-[#1e3d4d] text-white text-sm">
+              {["FD", "RD", "SAVINGS"].map(p => <option key={p}>{p}</option>)}
+            </select>
+            {[["minAmount", "Min ₹"], ["maxAmount", "Max ₹ (opt)"], ["tenureMonths", "Tenure m (opt)"], ["rate", "Rate %"]].map(([k, ph]) => (
+              <input key={k} type="number" step="0.01" placeholder={ph} value={(form as any)[k]}
+                onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
+                className="h-10 w-28 px-3 rounded-lg bg-[#071a26] border border-[#1e3d4d] text-white text-sm focus:border-[#e8a33d]/50 focus:outline-none" />
+            ))}
+            <Button size="sm" disabled={saving} className="bg-gradient-to-r from-[#e8a33d] to-[#f2bd68] hover:from-[#d18a24] hover:to-[#e0a64a] text-[#1a1206] border-0">
+              {saving ? "Saving…" : "Publish Slab"}
+            </Button>
+            {msg && <span className={`text-xs ${msg.startsWith("Saved") ? "text-[#4ade80]" : "text-[#f87171]"}`}>{msg}</span>}
+            <span className="w-full text-[10px] text-[#8ea6b6]">Publishing retires overlapping versions — full history retained.</span>
+          </form>
+
+          {slabs.retired.length > 0 && (
+            <details className="text-xs text-[#8ea6b6]">
+              <summary className="cursor-pointer">History ({slabs.retired.length} retired)</summary>
+              <div className="mt-2 space-y-1">
+                {slabs.retired.slice(0, 8).map((s: any) => (
+                  <div key={s.id} className="flex gap-3"><span className="text-white/70">{s.product} {s.rate}%</span><span>₹{s.minAmount.toLocaleString("en-IN")}+</span><span>{new Date(s.retiredAt).toLocaleDateString()}</span></div>
+                ))}
+              </div>
+            </details>
+          )}
+        </>
+      )}
+    </section>
   )
 }

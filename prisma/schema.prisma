@@ -79,6 +79,7 @@ model User {
   kycLevel  KycLevel  @default(UNVERIFIED)
   status    UserStatus @default(ACTIVE)
   role      String   @default("USER")
+  seniorCitizen Boolean @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -90,6 +91,8 @@ model User {
   rewards          Reward[]
   kycDocuments     KycDocument[]
   affiliateClicks  AffiliateClick[]
+  interestEntries  InterestEntry[]
+  tdsSummaries     TdsSummary[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
   receivingAccounts ReceivingAccount[]
@@ -135,6 +138,8 @@ model Account {
   accountNumber String      @unique
   ifsc          String
   upiHandle     String?   @unique
+  nomineeName    String?
+  nomineeRelation String?
   isActive      Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -142,6 +147,8 @@ model Account {
   user              User       @relation(fields: [userId], references: [id])
   cards             Card[]
   transactions      Transaction[]
+  interestEntries   InterestEntry[]
+  jointHolders      JointHolder[]
   outgoingTransfers   Transfer[] @relation("FromAccount")
   incomingTransfers   Transfer[] @relation("ToAccount")
   fixedDeposits       FixedDeposit[]
@@ -828,6 +835,60 @@ model UpiId {
   createdAt DateTime @default(now())
 
   user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+
+model InterestEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  accountId     String
+  product       String
+  grossInterest Float
+  tds           Float    @default(0)
+  netCredit     Float
+  periodStart   DateTime
+  periodEnd     DateTime
+  createdAt     DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model TdsSummary {
+  id                 String   @id @default(cuid())
+  userId             String
+  fyYear             String
+  cumulativeInterest Float    @default(0)
+  tdsDeducted        Float    @default(0)
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, fyYear])
+}
+
+model RateSlab {
+  id            String    @id @default(cuid())
+  product      String
+  minAmount    Float
+  maxAmount    Float?
+  tenureMonths Int?
+  rate         Float
+  effectiveFrom DateTime @default(now())
+  retiredAt    DateTime?
+
+  @@index([product, effectiveFrom])
+}
+
+model JointHolder {
+  id           String   @id @default(cuid())
+  accountId    String
+  holderName   String
+  isPrimary    Boolean  @default(false)
+  survivorship String   @default("EITHER")
+  createdAt    DateTime @default(now())
+
   account Account @relation(fields: [accountId], references: [id])
 }
 
