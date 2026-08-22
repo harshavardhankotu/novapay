@@ -58,7 +58,8 @@ export function amountZScoreRule(
 export function newRecipientRule(
   recipientFirstSeenAt: Date | null,
   amount: number,
-  threshold = 50_000
+  threshold = 50_000,
+  now: Date = new Date()
 ): FraudFlag | null {
   if (amount < threshold) return null
   if (!recipientFirstSeenAt) {
@@ -68,7 +69,7 @@ export function newRecipientRule(
       reason: `₹${amount.toLocaleString("en-IN")} sent to a recipient you have never paid before (first-payment threshold ₹${threshold.toLocaleString("en-IN")}).`,
     }
   }
-  const hoursKnown = (Date.now() - recipientFirstSeenAt.getTime()) / 3600000
+  const hoursKnown = (now.getTime() - recipientFirstSeenAt.getTime()) / 3600000
   if (hoursKnown < 24) {
     return {
       rule: "NEW_RECIPIENT",
@@ -117,7 +118,7 @@ export function runFraudRules(ctx: {
   const z = amountZScoreRule(ctx.amount, ctx.historicalAmounts)
   if (z) flags.push(z)
 
-  const nr = newRecipientRule(ctx.recipientFirstSeenAt, ctx.amount)
+  const nr = newRecipientRule(ctx.recipientFirstSeenAt, ctx.amount, 50_000, now)
   if (nr) flags.push(nr)
 
   const nd = newDeviceRule(ctx.knownDeviceIds, ctx.currentDeviceId, ctx.amount)
