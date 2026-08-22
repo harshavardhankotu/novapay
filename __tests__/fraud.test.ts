@@ -64,14 +64,14 @@ describe("Rule 3 — new recipient above ₹50k", () => {
 
   it("flags recipients known less than 24h", () => {
     const recent = new Date(NOW.getTime() - 2 * 3600000)
-    const f = newRecipientRule(recent, 60000, 50000)
+    const f = newRecipientRule(recent, 60000, 50000, NOW)
     expect(f).not.toBeNull()
     expect(f!.reason).toContain("2.0h ago")
   })
 
   it("clears recipients older than 24h even at high amounts", () => {
     const old = new Date(NOW.getTime() - 72 * 3600000)
-    expect(newRecipientRule(old, 60000)).toBeNull()
+    expect(newRecipientRule(old, 60000, 50000, NOW)).toBeNull()
   })
 
   it("small amounts to brand-new recipients are not flagged", () => {
