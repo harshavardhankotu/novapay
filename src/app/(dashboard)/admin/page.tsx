@@ -217,7 +217,69 @@ export default function AdminPage() {
 
       <RatesPanel />
       <LoanApplicationsPanel />
+      <StrCasesPanel />
     </div>
+  )
+}
+
+function StrCasesPanel() {
+  const [cases, setCases] = useState<any[]>([])
+  const [busy, setBusy] = useState<string | null>(null)
+  const [note, setNote] = useState<Record<string, string>>({})
+
+  const load = useCallback(() => {
+    fetch("/api/str-cases").then(r => r.json()).then(d => setCases(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+  useEffect(load, [load])
+
+  async function act(caseId: string, action: string) {
+    setBusy(caseId)
+    try {
+      await fetch("/api/str-cases", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId, action, note: note[caseId] }),
+      })
+      load()
+    } finally { setBusy(null) }
+  }
+
+  const statusColor = (s: string) =>
+    s === "ESCALATED" ? "bg-[#f87171]/20 text-[#f87171]" :
+    s === "CLEARED" ? "bg-[#4ade80]/20 text-[#4ade80]" :
+    s === "UNDER_REVIEW" ? "bg-[#fbbf24]/20 text-[#fbbf24]" : "bg-[#e8a33d]/20 text-[#f2bd68]"
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-[#2dd4bf]">STR / Compliance Cases</h2>
+      {!cases.length ? (
+        <p className="text-sm text-[#8ea6b6]">No open compliance cases.</p>
+      ) : (
+        <div className="space-y-3">
+          {cases.map(c => (
+            <div key={c.id} className="bg-[#0e2633]/50 rounded-xl border border-[#1e3d4d] p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(c.status)}`}>{c.status.replace("_", " ")}</span>
+                <span className="text-[11px] text-[#8ea6b6]">{c.user?.email} · {new Date(c.openedAt).toLocaleDateString()}</span>
+              </div>
+              <p className="text-sm text-white font-medium">{c.rule}</p>
+              <p className="text-xs text-[#8ea6b6]">{c.summary}</p>
+              {c.status !== "CLEARED" && c.status !== "ESCALATED" && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {c.status === "OPEN" && (
+                    <Button size="sm" variant="outline" disabled={busy === c.id} onClick={() => act(c.id, "review")}
+                      className="h-8 border-[#1e3d4d] text-[#c9d4de] hover:bg-[#071a26]">Start Review</Button>
+                  )}
+                  <Button size="sm" disabled={busy === c.id} onClick={() => act(c.id, "clear")}
+                    className="h-8 bg-gradient-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#16a34a] text-[#052e16] border-0">Clear</Button>
+                  <Button size="sm" variant="outline" disabled={busy === c.id} onClick={() => act(c.id, "escalate")}
+                    className="h-8 border-[#f87171]/40 text-[#f87171] hover:bg-[#f87171]/10">Escalate</Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   )
 }
 

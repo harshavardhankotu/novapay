@@ -97,6 +97,10 @@ model User {
   loanApplications LoanApplication[]
   standingInstructions StandingInstruction[]
   chequeRequests   ChequeRequest[]
+  swipeAttempts    SwipeAttempt[]
+  strCases         StrCase[]
+  screeningHits    ScreeningHit[]
+  closures         AccountClosure[]
   overdrafts       OverdraftFacility[]
   auditLogs        AuditLog[]
   externalAccounts ExternalAccount[]
@@ -155,6 +159,7 @@ model Account {
   interestEntries   InterestEntry[]
   jointHolders      JointHolder[]
   overdraft         OverdraftFacility?
+  swipes            SwipeAttempt[]
   outgoingTransfers   Transfer[] @relation("FromAccount")
   incomingTransfers   Transfer[] @relation("ToAccount")
   fixedDeposits       FixedDeposit[]
@@ -178,9 +183,15 @@ model Card {
   monthlyLimit    Float        @default(500000)
   isContactless   Boolean      @default(true)
   isOnlineEnabled Boolean      @default(true)
+  internationalEnabled Boolean @default(false)
+  perTxLimit      Float?
+  blockedMccCategories String?
+  dispatchStatus  String?
+  deliveryAddress String?
   createdAt       DateTime     @default(now())
 
   account Account @relation(fields: [accountId], references: [id])
+  swipes  SwipeAttempt[]
 }
 
 model Transaction {
@@ -339,6 +350,7 @@ model DisputeTicket {
   amount    Float
   reason    String
   status    String   @default("UNDER_REVIEW")
+  txnRef    String?
   npciRef   String   @unique
   createdAt DateTime @default(now())
 
@@ -733,6 +745,8 @@ model SupportTicket {
   category  String
   priority  String          @default("MEDIUM")
   status    String          @default("OPEN")
+  firstResponseAt DateTime?
+  resolutionAt    DateTime?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -995,6 +1009,63 @@ model ChequeRequest {
   reference String
   createdAt DateTime @default(now())
   issuedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+
+model SwipeAttempt {
+  id         String   @id @default(cuid())
+  userId     String
+  cardId     String
+  accountId  String
+  channel    String   // POS | ATM | ONLINE
+  mccCategory String
+  amount     Float
+  intl       Boolean  @default(false)
+  result     String   // APPROVED | DECLINED
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  card Card @relation(fields: [cardId], references: [id])
+  account Account @relation(fields: [accountId], references: [id])
+}
+
+model StrCase {
+  id            String   @id @default(cuid())
+  subjectUserId String
+  triggerRef    String
+  rule          String
+  summary       String
+  status        String   @default("OPEN") // OPEN|UNDER_REVIEW|CLEARED|ESCALATED
+  assignedTo    String?
+  notesJson     String   @default("[]")
+  openedAt      DateTime @default(now())
+  closedAt      DateTime?
+
+  user User @relation(fields: [subjectUserId], references: [id])
+}
+
+model ScreeningHit {
+  id         String   @id @default(cuid())
+  userId     String
+  listName   String
+  matchedOn  String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AccountClosure {
+  id            String   @id @default(cuid())
+  userId        String
+  accountId     String
+  finalBalance  Float
+  duesDeducted  Float    @default(0)
+  status        String   @default("SETTLED")
+  nomineeNotified String  @default("no-nominee")
+  createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 }

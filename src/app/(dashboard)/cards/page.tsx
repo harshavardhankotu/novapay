@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Snowflake, CreditCard, Loader2, AlertCircle } from "lucide-react"
+import { Plus, Snowflake, CreditCard, Loader2, AlertCircle, Zap, Globe, CheckCircle2, XCircle } from "lucide-react"
+
+const MCC_LIST = ["GROCERY", "FUEL", "RESTAURANT", "TRAVEL", "ELECTRONICS", "ATM_CASH", "GAMBLING", "CRYPTO", "UTILITIES", "OTHER"]
 
 interface CardRow {
   id: string
@@ -35,11 +37,53 @@ export default function CardsPage() {
     let alive = true
     fetch("/api/cards")
       .then((r) => r.json())
-      .then((d: CardRow[]) => { if (alive) setCards(Array.isArray(d) ? d : []) })
+      .then((d: any) => {
+        if (alive) setCards(Array.isArray(d?.cards) ? d.cards : Array.isArray(d) ? d : [])
+      })
       .catch(() => {})
       .finally(() => { if (alive) setLoading(false) })
     return () => { alive = false }
   }, [reloadTick])
+
+  async function patchCard(id: string, patch: Record<string, unknown>) {
+    setError("")
+    try {
+      const res = await fetch("/api/cards", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...patch }),
+      })
+      if (!res.ok) throw new Error("Update failed")
+      setCards(prev => prev.map(c => (c.id === id ? { ...c, ...(patch as any), status: patch.internationalEnabled !== undefined ? c.status : c.status } as CardRow : c)))
+      if (patch.confirmDispatchAddress || patch.blockedMccCategories !== undefined) setReloadTick(t => t + 1)
+    } catch (e: any) { setError(e?.message || "Failed") }
+  }
+
+  // Swipe simulator state
+  const [swipe, setSwipe] = useState({ cardId: "", mccCategory: "GROCERY", amount: "", intl: false, channel: "POS" })
+  const [swipeResult, setSwipeResult] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function runSwipe() {
+    if (!swipe.cardId || !swipe.amount) return
+    setSwipeResult(null)
+    try {
+      const res = await fetch("/api/cards/swipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...swipe, amount: parseFloat(swipe.amount) }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      if (d.result === "APPROVED") {
+        setSwipeResult({ ok: true, text: `APPROVED · ${Number(swipe.amount).toLocaleString("en-IN", { style: "currency", currency: "INR" })} at ${swipe.mccCategory}${swipe.intl ? " (international)" : ""}` })
+      } else {
+        setSwipeResult({ ok: false, text: `DECLINED — ${d.reason?.replace(/_/g, " ")}` })
+      }
+      setReloadTick(t => t + 1)
+    } catch (e: any) { setSwipeResult({ ok: false, text: e?.message }) }
+  }
+
+  function money(n: number) { return `₹${Number(n || 0).toLocaleString("en-IN")}` }
 
   async function toggleFreeze(card: CardRow) {
     setBusyId(card.id)
@@ -128,8 +172,31 @@ export default function CardsPage() {
                 <div className="p-5 space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-[#8ea6b6]">{card.type.charAt(0)}{card.type.slice(1).toLowerCase()} card</span>
-                    <span className="text-white font-medium">₹{card.dailyLimit.toLocaleString("en-IN")}/day</span>
+                    <span className="text-white font-medium">{(card as any).perTxLimit ? `₹${(card as any).perTxLimit.toLocaleString("en-IN")}/tx` : `₹${card.dailyLimit.toLocaleString("en-IN")}/day`}</span>
                   </div>
+
+                  {/* Controls */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => patchCard(card.id, { internationalEnabled: !(card as any).internationalEnabled })}
+                      className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${(card as any).internationalEnabled ? "border-[#4ade80]/50 text-[#4ade80]" : "border-[#1e3d4d] text-[#8ea6b6]"}`}>
+                      <Globe className="w-3 h-3 inline mr-1" /> Intl {(card as any).internationalEnabled ? "ON" : "OFF"}
+                    </button>
+                    <select value={((card as any).blockedMccCategories || "").split(",")[0] || ""}
+                      onChange={(e) => patchCard(card.id, { blockedMccCategories: e.target.value })}
+                      className="bg-[#071a26] border border-[#1e3d4d] rounded-full text-[10px] px-2 py-1 text-[#8ea6b6] focus:outline-none">
+                      <option value="">No MCC block</option>
+                      {["GAMBLING", "CRYPTO"].map(m => <option key={m} value={m}>Block {m}</option>)}
+                    </select>
+                    {(card as any).dispatchStatus && (
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-[#fbbf24]/15 text-[#fbbf24]">📦 {(card as any).dispatchStatus === "CONFIRMING_ADDRESS" ? "Confirm address to dispatch" : (card as any).dispatchStatus}</span>
+                    )}
+                  </div>
+                  {(card as any).type === "PHYSICAL" && !(card as any).dispatchStatus && (
+                    <input placeholder="Confirm delivery address…" onBlur={e => e.target.value.trim().length > 5 && patchCard(card.id, { confirmDispatchAddress: e.target.value })}
+                      className="w-full bg-[#071a26] border border-[#1e3d4d] rounded-lg px-3 py-2 text-xs text-white placeholder:text-[#8ea6b6] focus:outline-none focus:border-[#e8a33d]/50" />
+                  )}
+
                   <Button variant="outline" size="sm" onClick={() => toggleFreeze(card)} disabled={busyId === card.id}
                     className="w-full gap-2 border-[#1e3d4d] text-[#c9d4de] hover:bg-[#071a26] hover:text-white">
                     {busyId === card.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Snowflake className="h-4 w-4" />}
@@ -141,6 +208,45 @@ export default function CardsPage() {
           })}
         </div>
       )}
+      {/* Swipe simulator */}
+      {cards.length > 0 && (
+        <div className="bg-[#0e2633] rounded-2xl border border-[#1e3d4d] p-5 space-y-3">
+          <h3 className="text-white font-semibold text-sm flex items-center gap-2"><Zap className="w-4 h-4 text-[#fbbf24]" /> POS / ATM Swipe Simulator</h3>
+          {swipeResult && (
+            <div className={`flex items-center gap-2 p-3 rounded-xl border text-sm ${swipeResult.ok ? "bg-[#4ade80]/10 border-[#4ade80]/30 text-[#4ade80]" : "bg-[#f87171]/10 border-[#f87171]/30 text-[#f87171]"}`}>
+              {swipeResult.ok ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />} {swipeResult.text}
+            </div>
+          )}
+          <div className="grid sm:grid-cols-2 gap-2">
+            <select value={swipe.cardId} onChange={e => setSwipe(s => ({ ...s, cardId: e.target.value }))}
+              className="bg-[#071a26] text-white rounded-lg px-3 py-2.5 text-sm border border-[#1e3d4d] focus:outline-none">
+              <option value="">Select card</option>
+              {cards.map(c => <option key={c.id} value={c.id}>····{c.lastFour} · {c.type}</option>)}
+            </select>
+            <select value={swipe.channel} onChange={e => setSwipe(s => ({ ...s, channel: e.target.value }))}
+              className="bg-[#071a26] text-white rounded-lg px-3 py-2.5 text-sm border border-[#1e3d4d] focus:outline-none">
+              {["POS", "ATM", "ONLINE"].map(c => <option key={c}>{c}</option>)}
+            </select>
+            <select value={swipe.mccCategory} onChange={e => setSwipe(s => ({ ...s, mccCategory: e.target.value }))}
+              className="bg-[#071a26] text-white rounded-lg px-3 py-2.5 text-sm border border-[#1e3d4d] focus:outline-none">
+              {MCC_LIST.map(m => <option key={m}>{m}</option>)}
+            </select>
+            <input type="number" placeholder="Amount ₹" value={swipe.amount} onChange={e => setSwipe(s => ({ ...s, amount: e.target.value }))}
+              className="bg-[#071a26] text-white rounded-lg px-3 py-2.5 text-sm border border-[#1e3d4d] focus:border-[#e8a33d]/50 focus:outline-none" />
+          </div>
+          <label className="flex items-center gap-2 text-xs text-[#8ea6b6]">
+            <input type="checkbox" checked={swipe.intl} onChange={e => setSwipe(s => ({ ...s, intl: e.target.checked }))} className="accent-[#e8a33d]" />
+            International merchant
+          </label>
+          <Button size="sm" onClick={runSwipe} disabled={!swipe.cardId || !swipe.amount}
+            className="gap-2 bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] hover:from-[#f59e0b] hover:to-[#d97706] text-[#1a1206] border-0">
+            <Zap className="h-4 w-4" /> Run Swipe
+          </Button>
+        </div>
+      )}
+
+      {/* My applications under review */}
+      {false && <span />}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { signToken, hashPassword, setTokenCookie } from "@/lib/auth"
 import { normalizeIndianPhone } from "@/lib/validation"
 import { audit } from "@/lib/banking"
+import { screenOnboarding } from "@/lib/compliance"
 import { prisma } from "@/lib/prisma"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -92,6 +93,8 @@ export async function POST(request: Request) {
     })
 
     await audit(user.id, "SIGNUP", `Account created for ${email}`)
+    // AML/sanctions screening at onboarding (simulated watchlist)
+    await screenOnboarding(user.id, name).catch(() => {})
 
     // ── Referral completion: link referee → referrer, reward both sides ──
     const refCode = typeof raw.referralCode === "string" ? raw.referralCode.trim().toUpperCase() : ""

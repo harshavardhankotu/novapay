@@ -3,6 +3,7 @@ import { getTokenFromCookies, verifyToken } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { assertDebitAllowed, awardSpendPoints, notify, audit, LimitError, applyRoundup, updateBudgetSpent } from "@/lib/banking"
 import { validateRail, assertRailAllows, resolveRailSchedule, RailError } from "@/lib/rails"
+import { screenTransfer } from "@/lib/compliance"
 
 class ApiError extends Error {
   constructor(public status: number, message: string) { super(message) }
@@ -117,6 +118,9 @@ export async function POST(request: Request) {
         : `₹${amount.toLocaleString("en-IN")} sent via ${rail} to ${toAccountNumber || "external account"}${points ? ` · +${points} NovaPoints` : ""}`
     )
     await audit(payload.userId, "TRANSFER_INITIATED", `${rail} ${toAccountNumber ? "transfer" : "payout"} of ₹${amount} (${reference})${scheduledFor ? " [scheduled]" : ""}`)
+
+    // AML screening on high-value transfers (simulated watchlist)
+    await screenTransfer(payload.userId, amount, reference).catch(() => {})
 
     return NextResponse.json({ transfer, reference, rail, pointsEarned: points, scheduled: !!scheduledFor, scheduledFor })
   } catch (error) {
